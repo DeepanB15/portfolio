@@ -2,6 +2,7 @@ export type Highlight = {
   id: string;
   title: string;
   badge: string;
+  subtitle?: string;
   image: string;
   imageWidth: number;
   imageHeight: number;
