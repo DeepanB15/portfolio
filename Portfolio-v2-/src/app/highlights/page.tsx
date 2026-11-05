@@ -7,10 +7,11 @@ import { FooterBackground } from "@/components/FooterBackground";
 import { HighlightCard } from "@/components/Highlights";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { highlightsData } from "@/data/highlightsData";
+import { profile } from "@/data/profile";
 
 export const metadata: Metadata = {
-  title: "Highlights | Ashutoshx7",
-  description: "A complete archive of Ashutoshx7's highlights and milestones.",
+  title: `Highlights | ${profile.name}`,
+  description: `A complete archive of ${profile.name}'s highlights and milestones.`,
 };
 
 const horizontalDots = {

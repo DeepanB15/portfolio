@@ -2,57 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-
-type ExperienceData = {
-  title: string;
-  role: string;
-  dates: string;
-  location: string;
-  src: string;
-  type?: string;
-  imageFit?: "contain" | "cover";
-  imageZoom?: number;
-  description: string;
-  tech: string[];
-  metrics?: { label: string; value: string }[];
-  screenshot?: string;
-};
-
-const experiences: ExperienceData[] = [
-  {
-    title: "StratIQ",
-    role: "AI Developer / Co-Founder",
-    dates: "Mar 2026 – Jun 2026",
-    location: "Chennai, India",
-    src: "/Experience-image/stratIQ.png",
-    imageFit: "contain",
-    imageZoom: 1,
-    description: `
-      Co-founded StratIQ and built LeadPilotAI, an AI-powered B2B research platform that turns raw lead lists into evidence-backed company profiles and insights.
-      Developed an internal CRM and team management system to organize tasks, coordinate the team, and track project workflows.
-      Worked directly with clients to translate requirements into websites and software, covering frontend and UI design.
-    `,
-    tech: ["Next.js", "FastAPI", "PostgreSQL", "Ollama", "Docker"],
-    metrics: [
-      { label: "AI product shipped", value: "1" },
-      { label: "Internal tools", value: "2" },
-    ],
-  },
-  {
-    title: "IEI Student Chapter",
-    role: "Vice President",
-    dates: "Jul 2025 – Aug 2026",
-    location: "Chennai, India",
-    src: "/Experience-image/iei-chapter.png",
-    imageFit: "contain",
-    imageZoom: 1,
-    description: `
-      Coordinated AI-focused workshops, technical talks, and seminars with student teams and organizers.
-    `,
-    tech: ["Leadership", "Community", "Events"],
-    metrics: [{ label: "AI", value: "Workshops & talks" }],
-  },
-];
+import { experiences } from "@/data/portfolio-experiences";
 
 export function ExperienceList() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
@@ -102,15 +52,21 @@ export function ExperienceList() {
               <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
                 <div className="size-10 shrink-0 rounded-[10px] border border-black/10 bg-zinc-50 p-[2px] shadow-sm shadow-black/15 dark:border-zinc-800 dark:bg-[#111111] dark:shadow-md dark:shadow-black/50">
                   <div className="w-full h-full rounded-[7px] border border-black/5 dark:border-black/20 bg-white flex items-center justify-center overflow-hidden relative">
-                    <Image
-                      src={item.src}
-                      alt={item.title}
-                      width={40}
-                      height={40}
-                      sizes="40px"
-                      quality={60}
-                      className={`${item.imageFit === "contain" ? "object-contain" : "object-cover"} w-full h-full p-0.5`}
-                    />
+                    {item.src ? (
+                      <Image
+                        src={item.src}
+                        alt={item.title}
+                        width={40}
+                        height={40}
+                        sizes="40px"
+                        quality={60}
+                        className={`${item.imageFit === "contain" ? "object-contain" : "object-cover"} w-full h-full p-0.5`}
+                      />
+                    ) : (
+                      <span className="text-[10px] font-semibold text-zinc-500" aria-label={`${item.title} initials`}>
+                        {item.title.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-0.5 min-w-0 pr-2 sm:pr-4">
@@ -253,6 +209,36 @@ export function ExperienceList() {
                         );
                       })}
                   </ul>
+
+                  {item.links && (
+                    <div className="mb-4 flex flex-wrap gap-3 text-[13px]">
+                      {item.links.map((link) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(event) => event.stopPropagation()}
+                          className="underline underline-offset-2 transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="mb-4 flex flex-wrap gap-1.5">
+                      {item.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded border border-black/30 px-1.5 py-0.5 text-[10px] leading-none text-zinc-500 dark:border-white/[0.15] dark:text-zinc-400"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

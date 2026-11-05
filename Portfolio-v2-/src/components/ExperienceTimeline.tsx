@@ -13,7 +13,7 @@ type TimelineItem = {
   start: number;
   end: number;
   align: "start" | "end";
-  icon: string;
+  icon?: string;
   iconClassName?: string;
   barClassName: string;
 };
@@ -21,11 +21,64 @@ type TimelineItem = {
 // Begin at the first role so the durations use the full chart width.
 const timelineItems: TimelineItem[] = [
   {
+    label: "Freelance",
+    shortLabel: "Freelance",
+    dates: "September 2026 – Present",
+    detail: "Full-Stack Developer",
+    experienceIndex: 0,
+    start: 87,
+    end: 100,
+    align: "start",
+    icon: "/logos/freelance.png",
+    barClassName:
+      "border-[#047857] bg-[#047857] text-white hover:border-[#059669] hover:bg-[#059669]",
+  },
+  {
+    label: "PipesHub AI",
+    shortLabel: "PipesHub",
+    dates: "November 2026",
+    detail: "Open Source Contributor",
+    experienceIndex: 1,
+    start: 94,
+    end: 100,
+    align: "end",
+    icon: "/Experience-image/pngegg (1).png",
+    iconClassName: "scale-[1.35]",
+    barClassName:
+      "border-[#6d28d9] bg-[#6d28d9] text-white hover:border-[#7c3aed] hover:bg-[#7c3aed]",
+  },
+  {
+    label: "StratIQ",
+    shortLabel: "StratIQ",
+    dates: "March 2026 – June 2026",
+    detail: "AI Developer / Co-Founder",
+    experienceIndex: 2,
+    start: 70,
+    end: 84,
+    align: "start",
+    icon: "/highlights/stratiq.png",
+    barClassName:
+      "border-[#0891b2] bg-[#0891b2] text-white hover:border-[#06b6d4] hover:bg-[#06b6d4]",
+  },
+  {
+    label: "IEI Student Chapter",
+    shortLabel: "IEI",
+    dates: "July 2025 – August 2026",
+    detail: "Vice President",
+    experienceIndex: 3,
+    start: 28,
+    end: 88,
+    align: "end",
+    icon: "/logos/iei.png",
+    barClassName:
+      "border-[#a21caf] bg-[#a21caf] text-white hover:border-[#c026d3] hover:bg-[#c026d3]",
+  },
+  {
     label: "LF AI Security",
     shortLabel: "LF",
     dates: "Jun 2026 – Present",
     detail: "AI Security Intern, Caracal",
-    experienceIndex: 0,
+    experienceIndex: 4,
     start: 84,
     end: 100,
     align: "end",
@@ -38,7 +91,7 @@ const timelineItems: TimelineItem[] = [
     shortLabel: "GSoC",
     dates: "May 2026 – August 2026",
     detail: "AI Intern, Sugar Labs",
-    experienceIndex: 1,
+    experienceIndex: 5,
     start: 79,
     end: 95,
     align: "end",
@@ -51,7 +104,7 @@ const timelineItems: TimelineItem[] = [
     shortLabel: "VengenceUI",
     dates: "Oct 2025 – Present",
     detail: "Founder & Maintainer",
-    experienceIndex: 2,
+    experienceIndex: 6,
     start: 47,
     end: 100,
     align: "start",
@@ -65,7 +118,7 @@ const timelineItems: TimelineItem[] = [
     shortLabel: "Open source",
     dates: "Sep 2025 – Apr 2026",
     detail: "Sugar Labs, Joplin, kgateway & more",
-    experienceIndex: 3,
+    experienceIndex: 7,
     start: 42,
     end: 79,
     align: "end",
@@ -79,7 +132,7 @@ const timelineItems: TimelineItem[] = [
     shortLabel: "GSoC",
     dates: "May 2025 – Aug 2025",
     detail: "Open Source Contributor",
-    experienceIndex: 4,
+    experienceIndex: 8,
     start: 23,
     end: 42,
     align: "start",
@@ -92,7 +145,7 @@ const timelineItems: TimelineItem[] = [
     shortLabel: "C4GT",
     dates: "May 2025 – Aug 2025",
     detail: "Open Source Contributor",
-    experienceIndex: 5,
+    experienceIndex: 9,
     start: 23,
     end: 42,
     align: "end",
@@ -105,7 +158,7 @@ const timelineItems: TimelineItem[] = [
     shortLabel: "OSS",
     dates: "Dec 2024 – Apr 2025",
     detail: "Full Stack Developer",
-    experienceIndex: 6,
+    experienceIndex: 10,
     start: 0,
     end: 23,
     align: "start",
@@ -155,7 +208,7 @@ export function ExperienceTimeline({ onSelect }: ExperienceTimelineProps) {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-4 top-[72px] z-0 grid grid-rows-7 gap-1"
+        className="pointer-events-none absolute inset-x-0 bottom-4 top-[72px] z-0 grid grid-rows-11 gap-1"
       >
         {timelineItems.map((item) => (
           <span
@@ -182,7 +235,7 @@ export function ExperienceTimeline({ onSelect }: ExperienceTimelineProps) {
           </div>
 
           <div
-            className="relative grid min-h-0 flex-1 grid-rows-7 gap-1"
+            className="relative grid min-h-0 flex-1 grid-rows-11 gap-1"
             style={{
               backgroundImage:
                 "linear-gradient(to right, transparent 24.5%, rgba(113,113,122,0.07) 24.5%, rgba(113,113,122,0.07) 25%, transparent 25%, transparent 49.5%, rgba(113,113,122,0.07) 49.5%, rgba(113,113,122,0.07) 50%, transparent 50%, transparent 74.5%, rgba(113,113,122,0.07) 74.5%, rgba(113,113,122,0.07) 75%, transparent 75%)",
@@ -228,16 +281,22 @@ export function ExperienceTimeline({ onSelect }: ExperienceTimelineProps) {
                   >
                     <span className="relative z-10 flex min-w-max items-center gap-1.5">
                       <span className="relative flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-black/10 bg-white dark:border-black/15">
-                        <Image
-                          src={item.icon}
-                          alt=""
-                          aria-hidden="true"
-                          width={16}
-                          height={16}
-                          sizes="16px"
-                          quality={60}
-                          className={`size-full object-contain p-px ${item.iconClassName ?? ""}`}
-                        />
+                        {item.icon ? (
+                          <Image
+                            src={item.icon}
+                            alt=""
+                            aria-hidden="true"
+                            width={16}
+                            height={16}
+                            sizes="16px"
+                            quality={60}
+                            className={`size-full object-contain p-px ${item.iconClassName ?? ""}`}
+                          />
+                        ) : (
+                          <span className="text-[6px] font-bold text-zinc-600">
+                            {item.shortLabel.slice(0, 2).toUpperCase()}
+                          </span>
+                        )}
                       </span>
                       <span className="whitespace-nowrap sm:hidden">{item.shortLabel}</span>
                       <span className="hidden whitespace-nowrap sm:inline">{item.label}</span>
@@ -247,7 +306,7 @@ export function ExperienceTimeline({ onSelect }: ExperienceTimelineProps) {
                     id={`experience-timeline-tip-${item.experienceIndex}`}
                     role="tooltip"
                     className={`${styles.tooltip} pointer-events-none absolute z-50 w-max max-w-56 rounded-md border border-zinc-200 bg-white/95 px-2.5 py-2 text-left shadow-[0_8px_20px_rgba(0,0,0,0.16)] backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/95 dark:shadow-[0_10px_24px_rgba(0,0,0,0.45)] ${
-                      item.experienceIndex <= 3 ? "top-full mt-2" : "bottom-full mb-2"
+                      item.experienceIndex <= 4 ? "top-full mt-2" : "bottom-full mb-2"
                     } ${item.align === "end" ? "right-0" : "left-0"}`}
                   >
                     <p className="text-[11px] font-semibold leading-tight text-zinc-900 dark:text-zinc-100">

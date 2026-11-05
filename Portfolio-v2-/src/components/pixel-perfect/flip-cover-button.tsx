@@ -5,9 +5,9 @@ import styles from "./flip-cover-button.module.css";
 import SoftPillButton from "./soft-pill-button";
 
 interface FlipCoverButtonProps {
-  /** Cal.com booking link target */
+  /** Link to a contact destination */
   href?: string;
-  /** Label for the white cover button (default: "Book an intro call") */
+  /** Label for the white cover button */
   label?: string;
   /** Optional custom class */
   className?: string;
@@ -16,12 +16,11 @@ interface FlipCoverButtonProps {
 /**
  * 3D Flip Cover Button Component.
  * Styled to 100% exact size, padding, and height match with SoftPillButton ("Send an email").
- * On hover, the white "Book an intro call" lid flips open -120deg on a 3D hinge,
- * revealing the Cal.com themed button inside linking to https://cal.com/ashutosh-singh-1fqn5v/30min!
+ * On hover, the white cover opens on a 3D hinge to reveal the link beneath.
  */
 export function FlipCoverButton({
-  href = "https://cal.com/ashutosh-singh-1fqn5v/30min",
-  label = "Book an intro call",
+  href = "mailto:deepan.b.150706@gmail.com",
+  label = "Send an email",
   className = "",
 }: FlipCoverButtonProps) {
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,62 +24,18 @@ interface SocialProfile {
     label: string;
     value: string | number;
   }[];
+  href: string;
 }
 
 const socialProfiles: Record<string, SocialProfile> = {
   GitHub: {
-    name: "Ashutosh Singh",
-    handle: "Ashutoshx7",
-    avatar: "https://github.com/ashutoshx7.png",
-    bio: "20 • Artist / Engineer • Vengeance ARC",
-    location: "Delhi, India (UTC +05:30)",
-    stats: [
-      { value: "131", label: "Repositories" },
-      { value: "907", label: "Followers" },
-    ],
-  },
-  Twitter: {
-    name: "Ashutoshx7",
-    handle: "@Ashutosh_7x7",
-    avatar: "https://unavatar.io/twitter/Ashutosh_7x7",
-    banner: true,
-    bio: "20 • Artist / Engineer • 2× GSoC • Vercel OSS",
-    location: "Delhi, India (UTC +05:30)",
-    stats: [
-      { value: "500+", label: "Following" },
-      { value: "5K+", label: "Followers" },
-    ],
-  },
-  LinkedIn: {
-    name: "Ashutosh Singh",
-    handle: "in/ashutoshx7",
-    avatar: "https://github.com/ashutoshx7.png",
-    banner: true,
-    bio: "Building AI systems, developer tools, and open-source products.",
-    location: "Lucknow, Uttar Pradesh, India",
-    stats: [
-      { value: "500+", label: "Connections" },
-      { value: "5K+", label: "Followers" },
-    ],
-  },
-  Medium: {
-    name: "Ashutosh Singh",
-    handle: "@ashutoshx7",
-    avatar: "https://github.com/ashutoshx7.png",
-    bio: "Writing about modern web engineering, pixel-perfect design systems, and frontend optimizations.",
-    location: "Delhi, India (UTC +05:30)",
-    stats: [
-      { value: "12", label: "Stories" },
-      { value: "85", label: "Followers" },
-    ],
-  },
-  Discord: {
-    name: "Ashutoshx7",
-    handle: "ashutoshsingh71",
-    avatar: "/discord-avatar.png",
-    bio: "Even if it's dark, keep moving forward.",
-    location: "",
+    name: "Deepan B",
+    handle: "@DeepanB15",
+    avatar: "https://avatars.githubusercontent.com/u/178722933?v=4",
+    bio: "AI & Full-Stack Developer",
+    location: "Chennai, India",
     stats: [],
+    href: "https://github.com/DeepanB15",
   },
 };
 
@@ -90,12 +46,65 @@ interface SocialHoverCardProps {
 
 export default function SocialHoverCard({ socialName, children }: SocialHoverCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [githubStats, setGithubStats] = useState<SocialProfile["stats"] | null>(null);
   const profile = socialProfiles[socialName];
+
+  useEffect(() => {
+    if (!isOpen || socialName !== "GitHub" || githubStats) return;
+
+    const controller = new AbortController();
+
+    const fetchGitHubProfile = async () => {
+      try {
+        const response = await fetch("https://api.github.com/users/DeepanB15", {
+          headers: { Accept: "application/vnd.github+json" },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`GitHub profile request failed with status ${response.status}`);
+        }
+
+        const data: unknown = await response.json();
+        if (
+          typeof data !== "object" ||
+          data === null ||
+          !("login" in data) ||
+          data.login !== "DeepanB15" ||
+          !("public_repos" in data) ||
+          typeof data.public_repos !== "number" ||
+          !Number.isInteger(data.public_repos) ||
+          !("followers" in data) ||
+          typeof data.followers !== "number" ||
+          !Number.isInteger(data.followers)
+        ) {
+          throw new Error("GitHub profile response did not contain valid repository and follower counts");
+        }
+
+        setGithubStats([
+          { value: data.public_repos, label: "Repositories" },
+          { value: data.followers, label: "Followers" },
+        ]);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error("Failed to fetch GitHub profile details", error);
+        }
+      }
+    };
+
+    void fetchGitHubProfile();
+    return () => controller.abort();
+  }, [githubStats, isOpen, socialName]);
 
   // If there's no profile configuration for this social name, just render the child as-is
   if (!profile) {
     return <>{children}</>;
   }
+
+  const displayStats = githubStats ?? [
+    { value: "—", label: "Repositories" },
+    { value: "—", label: "Followers" },
+  ];
 
   if (profile.banner) {
     ReactDOM.preload(lightBannerPreload.src, {
@@ -142,9 +151,14 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                   "text-zinc-900 dark:text-zinc-100 select-none"
                 )}
               >
-                {socialName === "GitHub" || socialName === "Discord" ? (
+                {socialName === "GitHub" ? (
                   // Official flat Layout (No banner, side-by-side avatar and name/handle)
-                  <div className="p-4">
+                  <a
+                    href={profile.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-4"
+                  >
                     {/* Top Row: Avatar & Name side-by-side */}
                     <div className="flex items-center gap-3">
                       {/* Circular Avatar Container with status dot */}
@@ -159,13 +173,10 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                             decoding="async"
                             quality={75}
                             sizes="48px"
-                            className="w-full h-full object-cover grayscale opacity-90 contrast-100 mix-blend-multiply dark:mix-blend-normal"
+                            className="w-full h-full object-cover opacity-90"
                           />
                         </div>
                         {/* Discord active green dot indicator */}
-                        {socialName === "Discord" && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#0c0c0e] bg-green-500 shadow-sm" />
-                        )}
                       </div>
 
                       {/* Name and Handle */}
@@ -173,12 +184,7 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                         <h3 className="text-[13.5px] font-bold tracking-tight text-zinc-950 dark:text-zinc-50 truncate leading-tight">
                           {profile.name}
                         </h3>
-                        <span className={cn(
-                          "text-[11.5px] mt-0.5 leading-none",
-                          socialName === "Discord"
-                            ? "text-zinc-400 dark:text-zinc-500 font-sans"
-                            : "text-zinc-400 dark:text-zinc-500 font-mono"
-                        )}>
+                        <span className="mt-0.5 font-mono text-[11.5px] leading-none text-zinc-400 dark:text-zinc-500">
                           {profile.handle}
                         </span>
                       </div>
@@ -190,17 +196,6 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                         {profile.bio}
                       </p>
                     </div>
-
-                    {/* Discord Status Footer */}
-                    {socialName === "Discord" && (
-                      <div className="mt-3.5 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[11.5px]">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-zinc-700 dark:text-zinc-300 font-semibold">Online</span>
-                        </div>
-                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-sans uppercase tracking-wider font-semibold">Active Status</span>
-                      </div>
-                    )}
 
                     {/* Location Section */}
                     {profile.location && (
@@ -224,9 +219,9 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                     )}
 
                     {/* Stats Section */}
-                    {profile.stats && profile.stats.length > 0 && (
+                    {displayStats.length > 0 && (
                       <div className="mt-3.5 flex items-center gap-5 text-[12px] text-zinc-400 dark:text-zinc-500 pt-3 border-t border-black/5 dark:border-white/5">
-                        {profile.stats.map((stat, i) => (
+                        {displayStats.map((stat, i) => (
                           <div key={i} className="flex items-center gap-1">
                             <span className="font-extrabold text-zinc-950 dark:text-zinc-100">
                               {stat.value}
@@ -238,7 +233,7 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                         ))}
                       </div>
                     )}
-                  </div>
+                  </a>
                 ) : (
                   // Twitter / LinkedIn / Others stacked banner layout
                   <>
@@ -286,7 +281,7 @@ export default function SocialHoverCard({ socialName, children }: SocialHoverCar
                             decoding="async"
                             quality={75}
                             sizes="56px"
-                            className="w-full h-full object-cover grayscale opacity-90 contrast-100 mix-blend-multiply dark:mix-blend-normal"
+                            className="w-full h-full object-cover opacity-90"
                           />
                         </div>
                       </div>

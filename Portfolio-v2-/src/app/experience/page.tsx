@@ -9,23 +9,19 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
-
-type ExperienceData = {
-  title: string;
-  role: string;
-  dates: string;
-  location: string;
-  src: string;
-  type?: string;
-  imageFit?: "contain" | "cover";
-  imageZoom?: number;
-  description: string;
-  tech: string[];
-  metrics?: { label: string; value: string }[];
-  screenshot?: string;
-};
+import {
+  freelanceExperience,
+  pipeshubExperience,
+  stratiqExperience,
+  ieiExperience,
+  type ExperienceData,
+} from "@/data/portfolio-experiences";
 
 const experiences: ExperienceData[] = [
+  freelanceExperience,
+  pipeshubExperience,
+  stratiqExperience,
+  ieiExperience,
   {
     title: "Linux Foundation AI Security Mentorship",
     role: "AI Security Intern, Caracal",
@@ -331,16 +327,22 @@ export default function AllExperiencePage() {
                     <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
                       <div className="size-10 shrink-0 rounded-[10px] border border-black/10 bg-zinc-50 p-[2px] shadow-sm shadow-black/15 dark:border-zinc-800 dark:bg-[#111111] dark:shadow-md dark:shadow-black/50">
                         <div className="w-full h-full rounded-[7px] border border-black/5 dark:border-black/20 bg-white flex items-center justify-center overflow-hidden relative">
-                          <Image
-                            src={item.src}
-                            alt={item.title}
-                            width={40}
-                            height={40}
-                            sizes="40px"
-                            quality={60}
-                            style={item.imageZoom ? { transform: `scale(${item.imageZoom})` } : undefined}
-                            className={`${item.imageFit === "contain" ? "object-contain" : "object-cover"} w-full h-full p-0.5`}
-                          />
+                          {item.src ? (
+                            <Image
+                              src={item.src}
+                              alt={item.title}
+                              width={40}
+                              height={40}
+                              sizes="40px"
+                              quality={60}
+                              style={item.imageZoom ? { transform: `scale(${item.imageZoom})` } : undefined}
+                              className={`${item.imageFit === "contain" ? "object-contain" : "object-cover"} w-full h-full p-0.5`}
+                            />
+                          ) : (
+                            <span className="text-[10px] font-semibold text-zinc-500" aria-label={`${item.title} initials`}>
+                              {item.title.slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex min-w-0 flex-col gap-0.5 pr-2 sm:pr-4">
@@ -535,6 +537,23 @@ export default function AllExperiencePage() {
                               );
                             })}
                         </ul>
+
+                        {item.links && (
+                          <div className="mb-4 flex flex-wrap gap-3 text-[13px]">
+                            {item.links.map((link) => (
+                              <a
+                                key={link.href}
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                                className="underline underline-offset-2 transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
+                              >
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
+                        )}
 
                         {item.tech && (
                           <div className="flex flex-wrap gap-2 mt-4">

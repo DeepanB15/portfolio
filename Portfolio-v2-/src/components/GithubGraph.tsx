@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 interface ContributionDay {
   contributionCount: number;
+  contributionLevel: string;
   date: string;
 }
 
@@ -30,81 +31,43 @@ export function GithubGraph() {
   const [weeks, setWeeks] = useState<ContributionWeek[]>([]);
   const [months, setMonths] = useState<ContributionMonth[]>([]);
   const [totalContributions, setTotalContributions] = useState(0);
+  const [activityAvailable, setActivityAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
-  const emptyWeeks = useMemo<ContributionWeek[]>(() => {
-    const today = new Date();
-    const start = new Date(today);
-    start.setDate(today.getDate() - 370);
-
-    return Array.from({ length: 53 }, (_, weekIndex) => ({
-      contributionDays: Array.from({ length: 7 }, (_, dayIndex) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + weekIndex * 7 + dayIndex);
-
-        return {
-          contributionCount: 0,
-          date: date.toISOString().slice(0, 10),
-        };
-      }),
-    }));
-  }, []);
-
   useEffect(() => {
     const fetchContributions = async () => {
-      const cacheKey = "github_contributions";
+      const cacheKey = "github_contributions_DeepanB15_v3";
       const cachedData = typeof window !== "undefined" ? localStorage.getItem(cacheKey) : null;
-      
+
       if (cachedData) {
         try {
           const parsed = JSON.parse(cachedData);
+          if (!Array.isArray(parsed.weeks) || typeof parsed.totalContributions !== "number") {
+            throw new Error("Cached GitHub contribution data has an invalid shape.");
+          }
           setWeeks(parsed.weeks);
           setMonths(parsed.months || []);
           setTotalContributions(parsed.totalContributions);
+          setActivityAvailable(true);
           setLoading(false);
         } catch {
           setLoading(true);
         }
       }
 
-      const query = `
-        query {
-          user(login: "Ashutoshx7") {
-            contributionsCollection {
-              contributionCalendar {
-                totalContributions
-                months {
-                  name
-                }
-                weeks {
-                  contributionDays {
-                    contributionCount
-                    date
-                  }
-                }
-              }
-            }
-          }
-        }
-      `;
-
       try {
-        const response = await fetch("/api/github", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ query }),
-        });
+        const response = await fetch("/api/github/contributions");
+        if (!response.ok) {
+          throw new Error(`Contribution calendar request failed (${response.status}).`);
+        }
+        const calendar = await response.json();
 
-        const data = await response.json();
-        const calendar = data?.data?.user?.contributionsCollection?.contributionCalendar;
-        
         if (calendar) {
           setWeeks(calendar.weeks);
           setMonths(calendar.months);
           setTotalContributions(calendar.totalContributions);
+          setActivityAvailable(true);
           if (typeof window !== "undefined") {
             localStorage.setItem(cacheKey, JSON.stringify({
               weeks: calendar.weeks,
@@ -112,6 +75,8 @@ export function GithubGraph() {
               totalContributions: calendar.totalContributions
             }));
           }
+        } else {
+          throw new Error("Contribution calendar response was empty.");
         }
       } catch (error) {
         console.error("Failed to fetch GitHub contributions", error);
@@ -144,12 +109,15 @@ export function GithubGraph() {
     []
   );
 
-  const getLevel = (count: number) => {
-    if (count === 0) return 0;
-    if (count <= 3) return 1;
-    if (count <= 6) return 2;
-    if (count <= 9) return 3;
-    return 4;
+  const getLevel = (level: string) => {
+    const levelIndex: Record<string, number> = {
+      NONE: 0,
+      FIRST_QUARTILE: 1,
+      SECOND_QUARTILE: 2,
+      THIRD_QUARTILE: 3,
+      FOURTH_QUARTILE: 4,
+    };
+    return levelIndex[level] ?? 0;
   };
 
   const formatDate = (date: string) => {
@@ -177,11 +145,13 @@ export function GithubGraph() {
 
   const defaultMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const displayMonths = months.length > 0 ? months.map(m => m.name.substring(0, 3)) : defaultMonths;
-  const graphWeeks = weeks.length > 0 ? weeks : emptyWeeks;
+  const graphWeeks = weeks;
   const graphStatus =
     loading && totalContributions === 0
       ? "Loading GitHub contribution activity"
-      : `${totalContributions} GitHub activities in the last year`;
+      : activityAvailable
+        ? `${totalContributions} GitHub activities in the last year`
+        : "GitHub contribution activity unavailable";
   const dashedLineMask = {
     maskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)",
     WebkitMaskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)",
@@ -222,7 +192,7 @@ export function GithubGraph() {
       </div>
 
       <p id="github-activity-summary" className="sr-only">
-        Calendar heatmap showing daily GitHub contribution counts for Ashutoshx7 over the last year. Scroll horizontally to inspect all weeks.
+        Calendar heatmap showing daily GitHub contribution counts for DeepanB15 over the last year. Scroll horizontally to inspect all weeks.
       </p>
 
       {/* Graph content — sits directly on the page background */}
@@ -247,7 +217,8 @@ export function GithubGraph() {
                       ))}
                     </div>
                   ))
-                : graphWeeks.map((week, colIndex) => (
+                : activityAvailable
+                  ? graphWeeks.map((week, colIndex) => (
                     <div key={colIndex} className="flex flex-col gap-[2px]">
                       {colIndex === 0 &&
                         Array.from({ length: 7 - week.contributionDays.length }).map((_, i) => (
@@ -255,7 +226,7 @@ export function GithubGraph() {
                         ))}
 
                       {week.contributionDays.map((day) => {
-                        const level = getLevel(day.contributionCount);
+                        const level = getLevel(day.contributionLevel);
                         const color = contributionLevels[level];
 
                         return (
@@ -276,7 +247,8 @@ export function GithubGraph() {
                           <div key={`empty-bottom-${i}`} className="aspect-square w-full rounded-[2px] bg-transparent" />
                         ))}
                     </div>
-                  ))}
+                  ))
+                  : <p className="col-span-full py-4 text-center text-[12px] text-zinc-500 dark:text-zinc-400">GitHub contribution data is temporarily unavailable. Please try again later.</p>}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { profile } from "@/data/profile";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,46 +23,36 @@ const doto = Doto({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const pageTitle = `${profile.name} | ${profile.role}`;
+const pageDescription = `${profile.name} is an ${profile.role} based in ${profile.location}.`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://ashutoshx7.me"
-  ),
-  title: "Ashutoshx7",
-  description:
-    "Full stack developer building clean, modern websites and apps with a focus on design, functionality, and attention to detail.",
+  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
+  title: pageTitle,
+  description: pageDescription,
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png", sizes: "256x256" },
-    ],
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
   },
   openGraph: {
-    title: "Ashutoshx7",
-    description:
-      "Full stack developer building clean, modern websites and apps.",
-    url: "https://ashutoshx7.me",
-    siteName: "Ashutoshx7",
+    title: pageTitle,
+    description: pageDescription,
+    ...(siteUrl ? { url: siteUrl } : {}),
+    siteName: profile.name,
     type: "website",
     images: [
       {
-        url: "https://ashutoshx7.me/og-image.jpg",
-        secureUrl: "https://ashutoshx7.me/og-image.jpg",
-        width: 1024,
-        height: 576,
-        type: "image/jpeg",
-        alt: "Ashutoshx7 - Engineer / Artist Portfolio",
+        url: profile.avatar,
+        alt: `${pageTitle} portfolio`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ashutoshx7",
-    description:
-      "Full stack developer building clean, modern websites and apps.",
-    site: "@Ashutosh_7x7",
-    creator: "@Ashutosh_7x7",
-    images: ["https://ashutoshx7.me/og-image.jpg"],
+    title: pageTitle,
+    description: pageDescription,
+    images: [profile.avatar],
   },
 };
 

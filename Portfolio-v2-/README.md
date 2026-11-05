@@ -1,6 +1,6 @@
 
 
-# Ashutoshx7 — Portfolio
+# Deepan B — Portfolio
 
 A minimal, fast, and interactive developer portfolio built with **Next.js 16**, **React 19**, **Tailwind CSS v4**, and **TypeScript**.
 
@@ -64,6 +64,18 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 npm run build
 ```
 
+### GitHub activity and pull requests
+
+The contribution calendar uses GitHub GraphQL when `GITHUB_TOKEN` is configured, then falls back to the public [GitHub Contributions API](https://github-contributions-api.jogruber.de/) for `DeepanB15`. Pull-request tabs use GitHub's public search API; configuring the token also raises the API rate limit. The token is read only by server-side routes and is never exposed to browser code.
+
+For local development, copy `.env.example` to `.env.local` and add a GitHub token with read-only access to public user data:
+
+```text
+GITHUB_TOKEN=your_github_token
+```
+
+On Vercel, open **Project Settings → Environment Variables**, add `GITHUB_TOKEN`, select the required deployment environments, save, and redeploy. Do not use a `NEXT_PUBLIC_` prefix or commit the token.
+
 ### Start the production server
 
 ```bash
@@ -106,9 +118,9 @@ For other platforms, use the static or Node.js output mode configured in `next.c
 
 ## Connect
 
-- **GitHub:** [Ashutoshx7](https://github.com/Ashutoshx7)
-- **Twitter / X:** [@Ashutosh_7x7](https://x.com/Ashutosh_7x7)
-- **LinkedIn:** [Ashutosh Singh](https://www.linkedin.com/in/ashutosh-singh-855177329/)
+- **GitHub:** [DeepanB15](https://github.com/DeepanB15)
+- **LinkedIn:** [Deepan B](https://linkedin.com/in/deepanb)
+- **Email:** [deepan.b.150706@gmail.com](mailto:deepan.b.150706@gmail.com)
 
 ---
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { profile } from "@/data/profile";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -52,12 +53,20 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Blog | Ashutoshx7",
+      title: `Blog | ${profile.name}`,
     };
   }
 
+  const imageUrl = post.heroImage?.src;
+  const socialImage =
+    imageUrl?.startsWith("http")
+      ? imageUrl
+      : process.env.NEXT_PUBLIC_SITE_URL && imageUrl
+        ? new URL(imageUrl, process.env.NEXT_PUBLIC_SITE_URL).toString()
+        : profile.avatar;
+
   return {
-    title: `${post.title} | Ashutoshx7`,
+    title: `${post.title} | ${profile.name}`,
     description: post.description,
     openGraph: {
       title: post.title,
@@ -65,9 +74,13 @@ export async function generateMetadata({
       type: "article",
       images: [
         {
-          url: post.heroImage?.src ?? "/og-image.jpg",
-          width: post.heroImage?.width ?? 1024,
-          height: post.heroImage?.height ?? 576,
+          url: socialImage,
+          ...(imageUrl
+            ? {
+                width: post.heroImage?.width ?? 1024,
+                height: post.heroImage?.height ?? 576,
+              }
+            : {}),
           alt: post.title,
         },
       ],
@@ -76,7 +89,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: [post.heroImage?.src ?? "/og-image.jpg"],
+      images: [socialImage],
     },
   };
 }

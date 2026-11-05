@@ -42,10 +42,13 @@ export const ProjectCard = ({
 
   const imageSrc = resolvedTheme === "light" && project.lightModeSrc ? project.lightModeSrc : project.src;
 
-  const isNotStarted = project.title === "Inquiro";
-  const isBuilding = project.title === "Blueprint" || project.title === "Scribble3D";
-  const statusColor = isNotStarted ? "bg-zinc-400" : isBuilding ? "bg-red-500" : "bg-emerald-500";
-  const statusLabel = isNotStarted ? "Not Started" : isBuilding ? "Building" : "Live";
+  const statusColors = {
+    Building: "bg-red-500",
+    Live: "bg-emerald-500",
+    "Not Started": "bg-zinc-400",
+  } satisfies Record<Project["status"], string>;
+  const statusColor = statusColors[project.status];
+  const statusLabel = project.status;
 
   return (
     <div
@@ -57,6 +60,7 @@ export const ProjectCard = ({
         className="relative w-full aspect-[1.25] rounded-xl border border-black/5 dark:border-white/5 bg-zinc-50/80 dark:bg-[#09090b]/80 shadow-sm p-3.5 pb-0 flex flex-col overflow-hidden transition-[border-color,box-shadow] duration-200 hover:shadow-md hover:border-black/10 dark:hover:border-white/10 sm:aspect-[1.4] sm:p-4 sm:pb-0"
         initial="rest"
         whileHover="hover"
+        whileTap="hover"
         animate="rest"
       >
         <div className="flex items-center justify-end z-10 min-h-[24px]">
@@ -84,35 +88,42 @@ export const ProjectCard = ({
           </div>
         )}
 
-        <motion.h1
-          className="absolute left-1/2 top-1/4 z-30 text-[10px] font-bold uppercase tracking-widest text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
-          variants={{
-            rest: { x: "-50%", y: -8, opacity: 0 },
-            hover: { x: "-50%", y: 0, opacity: 1 },
-          }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-        >
-          Play Video
-        </motion.h1>
+        {project.backgroundImage && (
+          <div className="absolute inset-0 z-[1] bg-black/20 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+        )}
 
         {project.video && (
-          <motion.div
-            className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none group-hover:pointer-events-auto"
-            variants={{ rest: { scale: 0.5, opacity: 0 }, hover: { scale: 1, opacity: 1 } }}
-            transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.05 }}
-          >
-            <div 
-              className="h-10 w-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-200 border border-white/50"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (project.video) setActiveVideo(project.video);
+          <>
+            <motion.h1
+              className="absolute left-1/2 top-1/4 z-30 text-[10px] font-bold uppercase tracking-widest text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
+              variants={{
+                rest: { x: "-50%", y: -8, opacity: 0 },
+                hover: { x: "-50%", y: 0, opacity: 1 },
               }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <svg className="w-4 h-4 text-zinc-900 ml-0.5 fill-current" viewBox="0 0 24 24">
-                <path d="M5.25 5.653v12.694c0 .856.926 1.39 1.668.958l11.1-6.347a1.125 1.125 0 000-1.916L6.918 4.695c-.742-.432-1.668.102-1.668.958z" />
-              </svg>
-            </div>
-          </motion.div>
+              PLAY VIDEO
+            </motion.h1>
+
+            <motion.div
+              className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none group-hover:pointer-events-auto"
+              variants={{ rest: { scale: 0.5, opacity: 0 }, hover: { scale: 1, opacity: 1 } }}
+              transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.05 }}
+            >
+              <div
+                className="h-10 w-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-200 border border-white/50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!project.video) return;
+                  setActiveVideo(project.video);
+                }}
+              >
+                <svg className="w-4 h-4 text-zinc-900 ml-0.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M5.25 5.653v12.694c0 .856.926 1.39 1.668.958l11.1-6.347a1.125 1.125 0 000-1.916L6.918 4.695c-.742-.432-1.668-.102-1.668.958z" />
+                </svg>
+              </div>
+            </motion.div>
+          </>
         )}
 
         {/* Floating screenshot sitting directly at the bottom of the outer wrapper */}

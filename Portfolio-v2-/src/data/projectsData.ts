@@ -50,6 +50,7 @@ export interface Project {
   live?: string;
   backgroundImage?: string;
   hasPin: boolean;
+  status: "Building" | "Live" | "Not Started";
 }
 
 export const iconMap: Record<TechKey, TechIcon> = {
@@ -75,45 +76,68 @@ export const projectsData: Project[] = [
     slug: "kitehut",
     title: "KiteHut",
     imageTitle: "Landing Page",
-    src: "/project-image/kitehut.png",
-    lightModeSrc: "/project-image/kitehut.png",
+    src: "/project-hover-blueprint.webp",
+    lightModeSrc: "/project-hover-blueprint.webp",
     video: "",
     description:
       "Local-first repository intelligence engine: a code graph, context-aware retrieval and an evidence engine that verifies AI explanations against source code.",
     tags: ["Python", "FastAPI", "Tree-sitter", "NetworkX", "RAG", "Ollama", "MCP", "React"],
     tech: ["python", "fastapi", { label: "Tree-sitter" }, { label: "NetworkX" }, "rag", { label: "Ollama" }, { label: "MCP" }, "react"],
-    href: "https://github.com/DeepanB15/KiteHut",
-    backgroundImage: "/project-hover-kitehut.webp",
+    href: "https://github.com/DeepanB15/kiteHut",
+    backgroundImage: "/project-hover-blueprint.webp",
     hasPin: false,
+    status: "Building",
   },
   {
     slug: "tratepra",
     title: "Tratepra",
     imageTitle: "App Interface",
-    src: "/project-image/tratepra.png",
-    lightModeSrc: "/project-image/tratepra.png",
+    src: "/project-hover-inquiro.webp",
+    lightModeSrc: "/project-hover-inquiro.webp",
     video: "",
     description:
       "AI research and trend intelligence platform that finds emerging trends across sources using semantic analysis, topic clustering and trend scoring.",
     tags: ["React", "FastAPI", "pgvector", "BERTopic", "Ollama", "MCP"],
     tech: ["react", "fastapi", { label: "pgvector" }, { label: "BERTopic" }, { label: "Ollama" }, { label: "MCP" }],
-    href: "https://github.com/DeepanB15/Tratepra",
-    backgroundImage: "/project-hover-tratepra.webp",
+    href: "https://github.com/DeepanB15/micro-trend",
+    backgroundImage: "/project-hover-inquiro.webp",
     hasPin: false,
+    status: "Building",
   },
   {
     slug: "leadpilotai",
     title: "LeadPilotAI",
     imageTitle: "B2B Research Platform",
-    src: "/project-image/leadpilotai.png",
-    lightModeSrc: "/project-image/leadpilotai.png",
+    src: "/project-hover-scribble3d.webp",
+    lightModeSrc: "/project-hover-scribble3d.webp",
     video: "",
     description:
       "B2B company research platform that converts lead lists into structured intelligence reports with sources and confidence indicators.",
     tags: ["Next.js", "TypeScript", "FastAPI", "PostgreSQL", "Docker"],
     tech: ["next", "ts", "fastapi", { label: "PostgreSQL" }, { label: "Docker" }],
-    href: "https://github.com/DeepanB15/LeadPilotAI",
-    backgroundImage: "/project-hover-leadpilotai.webp",
+    href: "https://github.com/DeepanB15/Leadpilotai",
+    backgroundImage: "/project-hover-scribble3d.webp",
     hasPin: false,
+    status: "Building",
+  },
+  {
+    slug: "ai-engine-inspection-system",
+    title: "AI Engine Component Inspection System",
+    imageTitle: "Engine Component Inspection",
+    src: "/project-hover-vengenceui.webp",
+    lightModeSrc: "/project-hover-vengenceui.webp",
+    video: "",
+    description:
+      "YOLOv8 Nano fine-tuned for 26 engine component classes, with OpenCV preprocessing, Present, Potentially Missing, and Uncertain inspection states, a Flask API and dashboard, and explainable reports.",
+    tags: ["YOLOv8 Nano", "OpenCV", "Flask", "Explainable Reports"],
+    tech: [
+      { label: "YOLOv8 Nano" },
+      { label: "OpenCV" },
+      { label: "Flask" },
+    ],
+    href: "https://github.com/DeepanB15/ai-engine-inspection-system",
+    backgroundImage: "/project-hover-vengenceui.webp",
+    hasPin: false,
+    status: "Building",
   },
 ];

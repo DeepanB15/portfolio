@@ -6,6 +6,6 @@ const puppeteer = require('puppeteer');
   await page.setViewport({ width: 1280, height: 800 });
   await page.goto('http://localhost:3000');
   await page.waitForTimeout(2000);
-  await page.screenshot({ path: '/home/ashutoshx7/Portfolio v2/screenshot.png', fullPage: true });
+  await page.screenshot({ path: 'screenshot.png', fullPage: true });
   await browser.close();
 })();

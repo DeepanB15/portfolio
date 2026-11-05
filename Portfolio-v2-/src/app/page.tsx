@@ -17,39 +17,28 @@ import SocialHoverCard from "@/components/pixel-perfect/social-hover-card";
 import { BannerParticles } from "@/components/BannerParticles";
 import Image from "next/image";
 import { CircleDot } from "lucide-react";
-import { Fragment } from "react";
 import type { IconType } from "react-icons";
 import {
-  SiBun,
-  SiCplusplus,
-  SiDatabricks,
-  SiDiscord,
-  SiDjango,
+  SiCss,
   SiDocker,
-  SiExpo,
-  SiExpress,
-  SiFigma,
-  SiFramer,
+  SiFastapi,
+  SiFlask,
   SiGit,
-  SiGithub,
-  SiGreensock,
+  SiHuggingface,
+  SiHtml5,
   SiJavascript,
-  SiKubernetes,
-  SiLinux,
-  SiMongodb,
-  SiNextdotjs,
-  SiNodedotjs,
+  SiLangchain,
+  SiMysql,
+  SiN8N,
+  SiOpenjdk,
   SiPostgresql,
   SiPostman,
-  SiPrisma,
+  SiPytorch,
   SiPython,
   SiReact,
-  SiReactquery,
-  SiRedis,
-  SiShadcnui,
-  SiTailwindcss,
+  SiStreamlit,
+  SiSupabase,
   SiTypescript,
-  SiFlask,
 } from "react-icons/si";
 
 
@@ -57,6 +46,29 @@ const lightBannerPlaceholder =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 11'%3E%3Crect width='32' height='11' fill='%23d9e5e7'/%3E%3C/svg%3E";
 const darkBannerPlaceholder =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 11'%3E%3Crect width='32' height='11' fill='%23071329'/%3E%3C/svg%3E";
+
+const skillIconMap: Record<string, IconType> = {
+  Python: SiPython,
+  Java: SiOpenjdk,
+  SQL: SiMysql,
+  HTML: SiHtml5,
+  CSS: SiCss,
+  JavaScript: SiJavascript,
+  TypeScript: SiTypescript,
+  "React.js": SiReact,
+  FastAPI: SiFastapi,
+  Flask: SiFlask,
+  Streamlit: SiStreamlit,
+  PyTorch: SiPytorch,
+  "Hugging Face": SiHuggingface,
+  LangChain: SiLangchain,
+  PostgreSQL: SiPostgresql,
+  Supabase: SiSupabase,
+  Git: SiGit,
+  Docker: SiDocker,
+  Postman: SiPostman,
+  "n8n": SiN8N,
+};
 
 export default function Home() {
   return (
@@ -131,7 +143,7 @@ export default function Home() {
               {/* The inner image */}
               <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-[3px] sm:rounded-[5px] overflow-hidden bg-zinc-100 dark:bg-zinc-900">
                 <Image
-                  src="/avatar.png"
+                  src={profile.avatar}
                   alt="Profile"
                   width={240}
                   height={240}
@@ -139,7 +151,7 @@ export default function Home() {
                   priority
                   fetchPriority="high"
                   sizes="(min-width: 640px) 120px, 96px"
-                  className="h-full w-full origin-center translate-y-1 scale-[1.1] object-cover opacity-90 grayscale contrast-100 mix-blend-multiply dark:mix-blend-normal"
+                  className="h-full w-full origin-center translate-y-1 scale-[1.1] object-cover opacity-90"
                 />
               </div>
             </div>
@@ -158,7 +170,7 @@ export default function Home() {
             <div className="flex flex-col items-end gap-2 sm:gap-3 sm:h-24 py-1">
               {profile.socials.map((social, i) => (
                 <SocialHoverCard key={i} socialName={social.label}>
-                  <a href={social.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800/40 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md text-[12px] font-medium text-zinc-600 dark:text-zinc-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
+                  <a href={social.href} target={social.label === "Email" ? undefined : "_blank"} rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800/40 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md text-[12px] font-medium text-zinc-600 dark:text-zinc-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
                     <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
                       {social.label === 'GitHub' ? (
                         <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" fill="none"></path>
@@ -183,18 +195,18 @@ export default function Home() {
       {/* Flowing Content Section */}
       <div className="ml-0 mr-0 md:ml-[30%] md:mr-[30%] pt-[calc(22vh+112px)] pb-0 px-4 flex flex-col z-10 relative min-h-screen">
         <p className="text-[14px] sm:text-[15px] text-zinc-600 dark:text-zinc-300 leading-relaxed mt-4">
-          AI engineer. I love building, breaking, and shipping things.
+          {profile.tagline}
         </p>
 
         <ul className="text-[14px] sm:text-[15px] text-zinc-600 dark:text-zinc-300 leading-relaxed mt-4 pl-4">
-          <li className="flex gap-1.5"><span>•</span><span>Final-year B.Tech IT student at Sathyabama Institute of Science and Technology (CGPA 7.83).</span></li>
-          <li className="flex gap-1.5"><span>•</span><span>Co-founded StratIQ and built LeadPilotAI, an AI B2B company research platform.</span></li>
-          <li className="flex gap-1.5"><span>•</span><span>Open-source contributor to PipesHub AI with 2 merged MCP integrations.</span></li>
+          {profile.bullets.map((bullet) => (
+            <li key={bullet} className="flex gap-1.5"><span>•</span><span>{bullet}</span></li>
+          ))}
         </ul>
 
         {/* Buttons */}
-        <div className="flex flex-wrap items-center gap-2 mt-4">
-          <FlipCoverButton href="https://cal.com/ashutosh-singh-1fqn5v/30min" label="Book an intro call" />
+        <div id="contact" className="flex flex-wrap items-center gap-2 mt-4 scroll-mt-24">
+          <FlipCoverButton href="/contact" label="Contact me" />
           <Link href="/contact">
             <SoftPillButton
               as="span"
@@ -210,41 +222,6 @@ export default function Home() {
               </div>
             </SoftPillButton>
           </Link>
-        </div>
-
-        {/* Socials */}
-        <div id="contact" className="mt-6 scroll-mt-24">
-          <h2 className="text-[14px] text-zinc-500 mb-2">Here are my <span className="font-medium text-zinc-800 dark:text-zinc-200">socials</span></h2>
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              { name: 'GitHub', href: 'https://github.com/Ashutoshx7?tab=overview&from=2026-05-01&to=2026-05-15', icon: <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" fill="none"></path> },
-              { name: 'Twitter', href: 'https://x.com/Ashutosh_7x7', icon: <path d="M4 4l11.733 16h4.267l-11.733 -16zM4 20l6.768 -6.768M20 4l-6.768 6.768" stroke="currentColor" strokeWidth="2" fill="none" /> },
-              { name: 'LinkedIn', href: 'https://www.linkedin.com/in/ashutosh-singh-855177329/', icon: <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z" stroke="currentColor" strokeWidth="2" fill="none"></path> },
-              { name: 'Discord', href: 'https://discord.com/users/1137614232167399474' },
-            ].map((social, i) => (
-              <SocialHoverCard key={i} socialName={social.name}>
-                <SoftPillButton
-                  as="a"
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="secondary"
-                  className="px-3 py-1.5 !text-[12px]"
-                >
-                  <div className="flex items-center gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                    {social.name === 'Discord' ? (
-                      <SiDiscord className="w-3.5 h-3.5" aria-hidden="true" />
-                    ) : (
-                      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
-                        {social.icon}
-                      </svg>
-                    )}
-                    {social.name}
-                  </div>
-                </SoftPillButton>
-              </SocialHoverCard>
-            ))}
-          </div>
         </div>
 
         {/* Experiences */}
@@ -374,49 +351,21 @@ export default function Home() {
             <div className="absolute bottom-0 -right-4 w-[2px] h-[2px] bg-black/50 dark:bg-white/[0.25] translate-x-1/2 translate-y-1/2 pointer-events-none z-20" />
           </div>
 
-          <div className="relative pt-6 pb-2">
-            <div className="flex flex-wrap gap-2 w-full">
-              {Object.entries(skills).map(([category, categorySkills]) => (
-                <Fragment key={category}>
-                  <div className="text-[13px] font-medium text-zinc-600 dark:text-zinc-400 mb-2 dark:text-zinc-500">
-                    {category}
-                  </div>
-                  {categorySkills.map((skill) => {
-                    const skillIconMap: Record<string, IconType> = {
-                      Python: SiPython,
-                      Java: SiCplusplus,
-                      TypeScript: SiTypescript,
-                      JavaScript: SiJavascript,
-                      React: SiReact,
-                      Next: SiNextdotjs,
-                      Node: SiNodedotjs,
-                      Django: SiDjango,
-                      Express: SiExpress,
-                      Flask: SiFlask,
-                      PostgreSQL: SiPostgresql,
-                      MongoDB: SiMongodb,
-                      Redis: SiRedis,
-                      Prisma: SiPrisma,
-                      Git: SiGit,
-                      Docker: SiDocker,
-                      Postman: SiPostman,
-                      SQL: SiDatabricks,
-                      DSA: SiPython,
-                      OOP: SiCplusplus,
-                      DBMS: SiPostgresql,
-                      SystemDesign: SiTypescript,
-                    };
-                    const IconComponent = skillIconMap[skill] || SiPython;
-                    return (
-                      <div key={skill} className="grow flex items-center justify-center gap-2 px-3 py-1.5 bg-zinc-50 hover:bg-zinc-100 dark:bg-[#0a0a0a] dark:hover:bg-[#121214] border border-black/30 dark:border-white/[0.15] rounded-[6px] transition-colors duration-200 cursor-default">
-                        <IconComponent aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-500 opacity-80" />
-                        <span className="text-[13px] font-medium text-zinc-600 dark:text-zinc-400">{skill}</span>
-                      </div>
-                    );
-                  })}
-                </Fragment>
-              ))}
-            </div>
+          <div className="relative flex flex-wrap gap-2 pt-6 pb-2">
+            {Object.values(skills).flat().map((skill) => {
+              const IconComponent = skillIconMap[skill];
+              return (
+                <div
+                  key={skill}
+                  className="flex min-h-10 max-w-full flex-[1_1_auto] items-center justify-center gap-2 rounded-[6px] border border-black/20 bg-white px-3 py-2 transition-colors duration-200 hover:bg-zinc-100 dark:border-white/[0.15] dark:bg-[#0a0a0a] dark:hover:bg-[#121214]"
+                >
+                  {IconComponent && (
+                    <IconComponent aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-zinc-500 opacity-80" />
+                  )}
+                  <span className="break-words text-[13px] font-medium leading-4 text-zinc-600 dark:text-zinc-400">{skill}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

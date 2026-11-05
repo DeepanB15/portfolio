@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import {
+  pipeshubContributions,
+  pipeshubTechnicalDetails,
+} from "@/data/pipeshub-contributions";
 
 interface PR {
   id: number;
@@ -14,6 +18,10 @@ interface PR {
   createdAt: string;
   mergedAt?: string;
   closedAt?: string;
+  organization?: string;
+  number?: number;
+  mergedDate?: string;
+  technicalDetails?: readonly string[];
 }
 
 type SearchEdge = {
@@ -37,50 +45,44 @@ type GitHubSearchResponse = {
 type FilterType = "merged" | "open" | "closed";
 
 const MAX_PRS_PER_FILTER = 300;
-const PR_CACHE_VERSION = "v2_300";
+const PR_CACHE_VERSION = "v4_300_DeepanB15";
 
-const SEARCH_QUERIES: Record<FilterType, string> = {
-  merged: "author:Ashutoshx7 type:pr is:merged",
-  open: "author:Ashutoshx7 type:pr is:open",
-  closed: "author:Ashutoshx7 type:pr is:closed is:unmerged",
-};
+const pipeshubPRs: PR[] = pipeshubContributions.map((contribution) => ({
+  id: -contribution.number,
+  title: contribution.title,
+  url: contribution.url,
+  repository: { nameWithOwner: "pipeshub-ai/pipeshub-ai" },
+  state: "MERGED",
+  createdAt: contribution.mergedAt,
+  mergedAt: contribution.mergedAt,
+  organization: "PipesHub AI",
+  number: contribution.number,
+  mergedDate: contribution.mergedDate,
+  technicalDetails: pipeshubTechnicalDetails,
+}));
 
-function buildGraphQLQuery(searchQuery: string, after: string | null) {
-  const afterArgument = after ? `, after: ${JSON.stringify(after)}` : "";
-
-  return `query {
-    search(query: "${searchQuery}", type: ISSUE, first: 100${afterArgument}) {
-      edges {
-        node {
-          ... on PullRequest {
-            id
-            title
-            url
-            repository {
-              nameWithOwner
-            }
-            state
-            createdAt
-            mergedAt
-            closedAt
-          }
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }`;
+function includePipesHubPRs(prs: PR[]) {
+  const actualByUrl = new Map(prs.map((pr) => [pr.url, pr]));
+  const pipeshubUrls = new Set(pipeshubPRs.map((pr) => pr.url));
+  return [
+    ...pipeshubPRs.map((confirmedPR) => {
+      const actualPR = actualByUrl.get(confirmedPR.url);
+      return actualPR
+        ? { ...actualPR, technicalDetails: pipeshubTechnicalDetails }
+        : confirmedPR;
+    }),
+    ...prs.filter((pr) => !pipeshubUrls.has(pr.url)),
+  ];
 }
 
 export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: boolean }) {
   const [prsByType, setPrsByType] = useState<Record<FilterType, PR[]>>({
-    merged: [],
+    merged: pipeshubPRs,
     open: [],
     closed: [],
   });
   const [loadedTypes, setLoadedTypes] = useState<Set<FilterType>>(new Set());
+  const [errorTypes, setErrorTypes] = useState<Set<FilterType>>(new Set());
   const [filterType, setFilterType] = useState<FilterType>("merged");
   const [closedPRIds] = useState<Set<number>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -96,7 +98,10 @@ export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: b
     if (cachedData) {
       try {
         const parsed = JSON.parse(cachedData);
-        setPrsByType(prev => ({ ...prev, [type]: parsed }));
+        setPrsByType((prev) => ({
+          ...prev,
+          [type]: type === "merged" ? includePipesHubPRs(parsed) : parsed,
+        }));
         setLoadedTypes(prev => new Set(prev).add(type));
       } catch {
         // invalid cache, will fetch fresh
@@ -106,53 +111,48 @@ export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: b
     // Fetch fresh data in background
     try {
       const fetchedEdges: Array<SearchEdge | null> = [];
-      let after: string | null = null;
+      let page = 1;
       let hasNextPage = true;
 
       while (hasNextPage && fetchedEdges.length < MAX_PRS_PER_FILTER) {
-        const query = buildGraphQLQuery(SEARCH_QUERIES[type], after);
-        const response = await fetch("/api/github", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query }),
-        });
-
+        const response = await fetch(`/api/github?state=${type}&page=${page}`);
         const data = (await response.json()) as GitHubSearchResponse;
+        if (!response.ok) {
+          throw new Error(data.message ?? data.error?.toString() ?? `Pull request request failed (${response.status}).`);
+        }
         const search = data.data?.search;
 
         if (!search?.edges) {
-          if (data.message === "Bad credentials" || data.error) {
-            console.warn("GitHub API: Invalid or missing GITHUB_TOKEN credentials. Fallback to cached/offline timeline state.");
-          } else {
-            console.error("GraphQL response missing expected data structure", data);
-          }
-          break;
+          throw new Error("GitHub returned an invalid pull request response.");
         }
 
         fetchedEdges.push(...search.edges.slice(0, MAX_PRS_PER_FILTER - fetchedEdges.length));
-        after = search.pageInfo?.endCursor ?? null;
-        hasNextPage = Boolean(search.pageInfo?.hasNextPage && after);
+        hasNextPage = Boolean(search.pageInfo?.hasNextPage);
+        page += 1;
       }
 
       if (fetchedEdges.length > 0) {
-        const fetchedPRs = fetchedEdges
-          .flatMap((edge) => (edge?.node ? [edge.node] : []))
-          .filter((pr: PR) => !(pr.title === "Main" && pr.repository.nameWithOwner === "Ashutoshx7/flexprice-storybook"));
+        const fetchedPRs = fetchedEdges.flatMap((edge) =>
+          edge?.node ? [edge.node] : [],
+        );
         fetchedPRs.sort((a: PR, b: PR) => {
           const dateA = new Date(b.mergedAt || b.closedAt || b.createdAt).getTime();
           const dateB = new Date(a.mergedAt || a.closedAt || a.createdAt).getTime();
           return dateA - dateB;
         });
-        setPrsByType(prev => ({ ...prev, [type]: fetchedPRs }));
+        const displayedPRs =
+          type === "merged" ? includePipesHubPRs(fetchedPRs) : fetchedPRs;
+        setPrsByType((prev) => ({ ...prev, [type]: displayedPRs }));
         setLoadedTypes(prev => new Set(prev).add(type));
         if (typeof window !== 'undefined') {
-          localStorage.setItem(cacheKey, JSON.stringify(fetchedPRs));
+          localStorage.setItem(cacheKey, JSON.stringify(displayedPRs));
         }
       } else {
         setLoadedTypes(prev => new Set(prev).add(type));
       }
     } catch (error) {
-      console.error("Failed to fetch PRs:", error);
+      console.error(`Failed to fetch ${type} GitHub pull requests:`, error);
+      setErrorTypes((previous) => new Set(previous).add(type));
       setLoadedTypes(prev => new Set(prev).add(type));
     }
   }, []);
@@ -294,7 +294,18 @@ export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: b
                     </div>
                     <p className="text-[12px] text-zinc-500 dark:text-zinc-400 ml-4.5 pl-0.5 relative z-20">
                       {pr.repository.nameWithOwner}
+                      {pr.number ? ` · PR #${pr.number}` : ""}
+                      {pr.mergedDate
+                        ? ` · Merged ${pr.mergedDate}`
+                        : pr.mergedAt
+                          ? ` · Merged ${new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(pr.mergedAt))}`
+                          : ""}
                     </p>
+                    {pr.technicalDetails && (
+                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 ml-4.5 pl-0.5 relative z-20">
+                        {pr.technicalDetails.join(" · ")}
+                      </p>
+                    )}
                   </a>
                 )
               })}
@@ -316,7 +327,9 @@ export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: b
             </div>
           ) : (
             <div className="flex justify-center py-4 text-center text-[13px] text-zinc-500">
-              No pull requests found. <span className="ml-1 text-zinc-400">(Add GITHUB_TOKEN in Vercel and redeploy)</span>
+              {errorTypes.has(filterType)
+                ? "GitHub pull request data is temporarily unavailable. Please try again later."
+                : `No ${filterType} pull requests found.`}
             </div>
           )}
         </div>
