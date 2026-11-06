@@ -23,7 +23,7 @@ const timelineItems: TimelineItem[] = [
   {
     label: "Freelance",
     shortLabel: "Freelance",
-    dates: "September 2026 – Present",
+    dates: "September 2026 – November 2026",
     detail: "Full-Stack Developer",
     experienceIndex: 0,
     start: 87,
@@ -73,100 +73,6 @@ const timelineItems: TimelineItem[] = [
     barClassName:
       "border-[#a21caf] bg-[#a21caf] text-white hover:border-[#c026d3] hover:bg-[#c026d3]",
   },
-  {
-    label: "LF AI Security",
-    shortLabel: "LF",
-    dates: "Jun 2026 – Present",
-    detail: "AI Security Intern, Caracal",
-    experienceIndex: 4,
-    start: 84,
-    end: 100,
-    align: "end",
-    icon: "/Experience-image/lf-decentralized-trust.png",
-    barClassName:
-      "border-[#0369a1] bg-[#0369a1] text-white hover:border-[#0284c7] hover:bg-[#0284c7]",
-  },
-  {
-    label: "GSoC 2026",
-    shortLabel: "GSoC",
-    dates: "May 2026 – August 2026",
-    detail: "AI Intern, Sugar Labs",
-    experienceIndex: 5,
-    start: 79,
-    end: 95,
-    align: "end",
-    icon: "/Experience-image/Google_Summer_of_Code_sun_logo_2022.svg (1).png",
-    barClassName:
-      "border-[#d97706] bg-[#d97706] text-white hover:border-[#f59e0b] hover:bg-[#f59e0b] hover:text-zinc-950",
-  },
-  {
-    label: "VengenceUI",
-    shortLabel: "VengenceUI",
-    dates: "Oct 2025 – Present",
-    detail: "Founder & Maintainer",
-    experienceIndex: 6,
-    start: 47,
-    end: 100,
-    align: "start",
-    icon: "/Experience-image/vercel-symbol-colored-light.png",
-    iconClassName: "scale-75",
-    barClassName:
-      "border-[#27272a] bg-[#27272a] text-white hover:border-[#3f3f46] hover:bg-[#3f3f46]",
-  },
-  {
-    label: "Open Source Contributor",
-    shortLabel: "Open source",
-    dates: "Sep 2025 – Apr 2026",
-    detail: "Sugar Labs, Joplin, kgateway & more",
-    experienceIndex: 7,
-    start: 42,
-    end: 79,
-    align: "end",
-    icon: "/Experience-image/pngegg (1).png",
-    iconClassName: "scale-[1.35]",
-    barClassName:
-      "border-[#6d28d9] bg-[#6d28d9] text-white hover:border-[#7c3aed] hover:bg-[#7c3aed]",
-  },
-  {
-    label: "GSoC 2025",
-    shortLabel: "GSoC",
-    dates: "May 2025 – Aug 2025",
-    detail: "Open Source Contributor",
-    experienceIndex: 8,
-    start: 23,
-    end: 42,
-    align: "start",
-    icon: "/Experience-image/Google_Summer_of_Code_sun_logo_2022.svg (1).png",
-    barClassName:
-      "border-[#c2410c] bg-[#c2410c] text-white hover:border-[#ea580c] hover:bg-[#ea580c]",
-  },
-  {
-    label: "C4GT",
-    shortLabel: "C4GT",
-    dates: "May 2025 – Aug 2025",
-    detail: "Open Source Contributor",
-    experienceIndex: 9,
-    start: 23,
-    end: 42,
-    align: "end",
-    icon: "https://static.wixstatic.com/media/060b0c_8029055ce0074bfaa4bb6d9f1c2c33d2~mv2.png/v1/fill/w_2266,h_2168,al_c,q_95,usm_0.66_1.00_0.01,enc_auto/060b0c_8029055ce0074bfaa4bb6d9f1c2c33d2~mv2.png",
-    barClassName:
-      "border-[#be123c] bg-[#be123c] text-white hover:border-[#e11d48] hover:bg-[#e11d48]",
-  },
-  {
-    label: "Open Source Contributor",
-    shortLabel: "OSS",
-    dates: "Dec 2024 – Apr 2025",
-    detail: "Full Stack Developer",
-    experienceIndex: 10,
-    start: 0,
-    end: 23,
-    align: "start",
-    icon: "/Experience-image/pngegg (1).png",
-    iconClassName: "scale-[1.35]",
-    barClassName:
-      "border-[#047857] bg-[#047857] text-white hover:border-[#059669] hover:bg-[#059669]",
-  },
 ];
 
 type ExperienceTimelineProps = {
@@ -202,13 +108,13 @@ export function ExperienceTimeline({ onSelect }: ExperienceTimelineProps) {
           </span>
         </div>
         <span className="shrink-0 pt-0.5 font-mono text-[10px] font-medium tracking-[0.12em] text-zinc-500 dark:text-zinc-500 sm:text-[11px]">
-          2024—PRESENT
+          2025—PRESENT
         </span>
       </div>
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-4 top-[72px] z-0 grid grid-rows-11 gap-1"
+        className="pointer-events-none absolute inset-x-0 bottom-4 top-[72px] z-0 grid grid-rows-4 gap-1"
       >
         {timelineItems.map((item) => (
           <span
@@ -235,7 +141,7 @@ export function ExperienceTimeline({ onSelect }: ExperienceTimelineProps) {
           </div>
 
           <div
-            className="relative grid min-h-0 flex-1 grid-rows-11 gap-1"
+            className="relative grid min-h-0 flex-1 grid-rows-4 gap-1"
             style={{
               backgroundImage:
                 "linear-gradient(to right, transparent 24.5%, rgba(113,113,122,0.07) 24.5%, rgba(113,113,122,0.07) 25%, transparent 25%, transparent 49.5%, rgba(113,113,122,0.07) 49.5%, rgba(113,113,122,0.07) 50%, transparent 50%, transparent 74.5%, rgba(113,113,122,0.07) 74.5%, rgba(113,113,122,0.07) 75%, transparent 75%)",

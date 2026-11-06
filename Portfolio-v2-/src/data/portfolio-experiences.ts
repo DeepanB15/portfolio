@@ -25,8 +25,8 @@ export type ExperienceData = {
 export const freelanceExperience: ExperienceData = {
   title: "Freelance",
   role: "Full-Stack Developer",
-  dates: "September 2026 – Present",
-  location: "Chennai, India",
+  dates: "September 2026 – November 2026",
+  location: "Remote",
   src: "/logos/freelance.png",
   imageFit: "contain",
   description:

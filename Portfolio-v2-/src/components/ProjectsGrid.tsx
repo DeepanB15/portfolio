@@ -170,7 +170,9 @@ export const ProjectCard = ({
             {project.tech.map((item) => {
               const key = typeof item === "string" ? item : item.label;
               const isIconItem = typeof item === "string";
+              const itemLabel = isIconItem ? techNames[item] : item.label;
               const tooltipText = isIconItem ? techNames[item] : item.tooltip || item.label;
+              const TechIcon = isIconItem ? iconMap[item] : item.icon;
               const uniqueId = `${project.title}-${key}`;
 
               return (
@@ -180,14 +182,11 @@ export const ProjectCard = ({
                   onMouseEnter={() => setHoveredTech(uniqueId)}
                   onMouseLeave={() => setHoveredTech(null)}
                 >
-                  {isIconItem ? (
-                    (() => {
-                      const TechIcon = iconMap[item];
-                      return <TechIcon className="w-4 h-4 md:w-3.5 md:h-3.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors" />;
-                    })()
+                  {TechIcon ? (
+                    <TechIcon className="w-4 h-4 md:w-3.5 md:h-3.5 text-zinc-400 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors" />
                   ) : (
                     <span className="px-1.5 py-0.5 rounded border border-black/30 dark:border-white/[0.15] text-[9px] text-zinc-500 dark:text-zinc-400 leading-none">
-                      {item.label}
+                      {itemLabel}
                     </span>
                   )}
                   <AnimatePresence>

@@ -5,19 +5,18 @@ import { ProjectsGrid } from "@/components/ProjectsGrid";
 import { ExperienceList } from "@/components/ExperienceList";
 import { OpenSourceContributions } from "@/components/OpenSourceContributions";
 import { Highlights } from "@/components/Highlights";
-import { FooterBackground } from "@/components/FooterBackground";
 import { RightNavbar } from "@/components/RightNavbar";
 import { CommandMenu } from "@/components/command-menu";
+import { ContactFormDialog } from "@/components/ContactFormDialog";
 import Link from "next/link";
 import SoftPillButton from "@/components/pixel-perfect/soft-pill-button";
-import { FlipCoverButton } from "@/components/pixel-perfect/flip-cover-button";
 import { profile } from "@/data/profile";
 import { skills } from "@/data/skills";
-import SocialHoverCard from "@/components/pixel-perfect/social-hover-card";
 import { BannerParticles } from "@/components/BannerParticles";
 import Image from "next/image";
 import { CircleDot } from "lucide-react";
 import type { IconType } from "react-icons";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 import {
   SiCss,
   SiDocker,
@@ -30,7 +29,6 @@ import {
   SiLangchain,
   SiMysql,
   SiN8N,
-  SiOpenjdk,
   SiPostgresql,
   SiPostman,
   SiPytorch,
@@ -40,16 +38,12 @@ import {
   SiSupabase,
   SiTypescript,
 } from "react-icons/si";
+import { FaJava } from "react-icons/fa";
 
-
-const lightBannerPlaceholder =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 11'%3E%3Crect width='32' height='11' fill='%23d9e5e7'/%3E%3C/svg%3E";
-const darkBannerPlaceholder =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 11'%3E%3Crect width='32' height='11' fill='%23071329'/%3E%3C/svg%3E";
 
 const skillIconMap: Record<string, IconType> = {
   Python: SiPython,
-  Java: SiOpenjdk,
+  Java: FaJava,
   SQL: SiMysql,
   HTML: SiHtml5,
   CSS: SiCss,
@@ -71,6 +65,9 @@ const skillIconMap: Record<string, IconType> = {
 };
 
 export default function Home() {
+  const githubProfile = profile.socials.find((social) => social.label === "GitHub");
+  const linkedInProfile = profile.socials.find((social) => social.label === "LinkedIn");
+
   return (
     <div className="min-h-screen w-full bg-white dark:bg-black relative overflow-x-hidden transition-colors duration-300">
 
@@ -103,32 +100,21 @@ export default function Home() {
 
       {/* Cell 1: Banner */}
       <div className="absolute left-0 right-0 md:left-[30%] md:right-[30%] top-0 h-[22vh] -z-0 pointer-events-auto overflow-hidden bg-white dark:bg-black shadow-[0_4px_12px_rgba(2,6,23,0.04)] dark:shadow-[0_4px_12px_rgba(2,6,23,0.10)]">
-        <Image
-          src="/ChatGPT%20Image%20May%2022%2C%202026%2C%2012_40_29%20AM.jpg"
-          alt=""
-          fill
-          fetchPriority="high"
-          sizes="(min-width: 768px) 40vw, 100vw"
-          quality={70}
-          placeholder="blur"
-          blurDataURL={lightBannerPlaceholder}
-          className="object-cover object-center dark:hidden"
-        />
-        <Image
-          src="/ChatGPT%20Image%20May%2022%2C%202026%2C%2012_49_39%20AM.jpg"
-          alt=""
-          fill
-          fetchPriority="high"
-          sizes="(min-width: 768px) 40vw, 100vw"
-          quality={70}
-          placeholder="blur"
-          blurDataURL={darkBannerPlaceholder}
-          className="hidden object-cover object-center dark:block"
-        />
+        <video
+          aria-hidden="true"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        >
+          <source src="/profile-header.mp4" type="video/mp4" />
+        </video>
         <BannerParticles />
-        <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-[5] bg-gradient-to-t from-white/90 to-transparent dark:from-black/50 dark:to-transparent" />
-        <div className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-20 bg-gradient-to-r from-white/90 to-transparent dark:from-black/40 dark:to-transparent" />
-        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-20 bg-gradient-to-l from-white/90 to-transparent dark:from-black/40 dark:to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-[5] bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-20 bg-gradient-to-r from-black/40 to-transparent" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-20 bg-gradient-to-l from-black/40 to-transparent" />
         <div className="absolute bottom-3 right-2 z-10 pointer-events-auto">
           <CurrentTime />
         </div>
@@ -167,26 +153,6 @@ export default function Home() {
           <div className="flex items-start justify-end gap-2 sm:gap-3 h-20 sm:h-24 py-1">
             <CommandMenu />
             <ThemeToggle className="dark:text-zinc-400 hover:dark:text-zinc-300" />
-            <div className="flex flex-col items-end gap-2 sm:gap-3 sm:h-24 py-1">
-              {profile.socials.map((social, i) => (
-                <SocialHoverCard key={i} socialName={social.label}>
-                  <a href={social.href} target={social.label === "Email" ? undefined : "_blank"} rel="noopener noreferrer" className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800/40 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md text-[12px] font-medium text-zinc-600 dark:text-zinc-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
-                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
-                      {social.label === 'GitHub' ? (
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" fill="none"></path>
-                      ) : social.label === 'Twitter' ? (
-                        <path d="M4 4l11.733 16h4.267l-11.733 -16zM4 20l6.768 -6.768M20 4l-6.768 6.768" stroke="currentColor" strokeWidth="2" fill="none" />
-                      ) : social.label === 'LinkedIn' ? (
-                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z" stroke="currentColor" strokeWidth="2" fill="none"></path>
-                      ) : social.label === 'Email' ? (
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                      ) : null}
-                    </svg>
-                    {social.label}
-                  </a>
-                </SocialHoverCard>
-              ))}
-            </div>
           </div>
 
         </div>
@@ -206,22 +172,37 @@ export default function Home() {
 
         {/* Buttons */}
         <div id="contact" className="flex flex-wrap items-center gap-2 mt-4 scroll-mt-24">
-          <FlipCoverButton href="/contact" label="Contact me" />
-          <Link href="/contact">
+          <ContactFormDialog />
+          {githubProfile && (
             <SoftPillButton
-              as="span"
-              variant="secondary"
+              as="a"
+              href={githubProfile.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub profile"
               className="px-3 py-1.5 !text-[12px]"
             >
-              <div className="flex items-center gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                Send an email
-              </div>
+              <span className="flex items-center gap-1.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100">
+                <FaGithub aria-hidden="true" className="h-3.5 w-3.5" />
+                GitHub
+              </span>
             </SoftPillButton>
-          </Link>
+          )}
+          {linkedInProfile && (
+            <SoftPillButton
+              as="a"
+              href={linkedInProfile.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn profile"
+              className="px-3 py-1.5 !text-[12px]"
+            >
+              <span className="flex items-center gap-1.5 opacity-70 transition-opacity duration-300 group-hover:opacity-100">
+                <FaLinkedin aria-hidden="true" className="h-3.5 w-3.5" />
+                LinkedIn
+              </span>
+            </SoftPillButton>
+          )}
         </div>
 
         {/* Experiences */}
@@ -418,32 +399,13 @@ export default function Home() {
         <div className="mt-2 flex flex-col items-center justify-center relative py-6">
           <div className="max-w-[480px] w-full flex flex-col items-center">
             <h3 className="text-[16px] font-medium text-center leading-relaxed text-zinc-500 dark:text-zinc-400 mb-6 italic">
-              &quot;Do so much work that it would be unreasonable<br className="hidden md:block" /> for you to not be successful.&quot;
+              &quot;We can only see a short distance ahead, but we can see plenty there that needs to be done.&quot;
             </h3>
 
-            <div className="flex items-center gap-3 text-[10px] font-medium tracking-[0.2em] text-zinc-400 dark:text-zinc-600 uppercase">
-              <div className="w-4 h-[1px] bg-zinc-200 dark:bg-zinc-800" />
-              ALEX HORMOZI
-              <div className="w-4 h-[1px] bg-zinc-200 dark:bg-zinc-800" />
+            <div className="text-[10px] font-medium tracking-[0.2em] text-zinc-400 dark:text-zinc-600 uppercase">
+              — ALAN TURING
             </div>
           </div>
-        </div>
-
-        {/* Fading Grid Filler */}
-        <div className="flex-grow w-[calc(100%+32px)] -mx-4 h-[300px] relative mt-4">
-          {/* Top full-width line */}
-          <div
-            className="absolute top-0 left-[-100vw] right-[-100vw] h-0 border-t border-black/30 dark:border-white/[0.15] pointer-events-none z-10"
-            style={{
-              maskImage: 'repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)',
-              WebkitMaskImage: 'repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)'
-            }}
-          />
-          {/* Intersections */}
-          <div className="absolute top-0 left-0 w-[2px] h-[2px] bg-black/50 dark:bg-white/[0.25] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20" />
-          <div className="absolute top-0 right-0 w-[2px] h-[2px] bg-black/50 dark:bg-white/[0.25] translate-x-1/2 -translate-y-1/2 pointer-events-none z-20" />
-
-          <FooterBackground />
         </div>
 
       </div>

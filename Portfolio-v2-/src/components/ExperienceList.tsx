@@ -75,9 +75,7 @@ export function ExperienceList() {
                       {item.title}
                     </span>
                   </div>
-                  <span
-                    className={`${item.title === "Vercel OSS Program x VengenceUI" ? "sm:-mt-2" : ""} text-[14px] sm:text-[15px] text-zinc-600 dark:text-zinc-400 truncate`}
-                  >
+                  <span className="text-[14px] sm:text-[15px] text-zinc-600 dark:text-zinc-400 truncate">
                     {item.role}
                   </span>
                 </div>

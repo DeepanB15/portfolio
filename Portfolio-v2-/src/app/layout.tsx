@@ -29,12 +29,8 @@ const pageDescription = `${profile.name} is an ${profile.role} based in ${profil
 
 export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
-  title: pageTitle,
+  title: "Deepan",
   description: pageDescription,
-  icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png",
-  },
   openGraph: {
     title: pageTitle,
     description: pageDescription,
@@ -67,7 +63,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${doto.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col dark:bg-black dark:text-zinc-50 transition-colors duration-300">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col dark:bg-black dark:text-zinc-50 transition-colors duration-300"
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

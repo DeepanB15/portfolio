@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { GitHubActivityTimeline } from "@/components/GitHubActivityTimeline";
 import {
   pipeshubContributions,
   pipeshubTechnicalDetails,
@@ -11,41 +12,30 @@ interface PR {
   id: number;
   title: string;
   url: string;
-  repository: {
-    nameWithOwner: string;
-  };
+  repository: { nameWithOwner: string };
   state: string;
   createdAt: string;
-  mergedAt?: string;
-  closedAt?: string;
-  organization?: string;
+  mergedAt?: string | null;
   number?: number;
   mergedDate?: string;
   technicalDetails?: readonly string[];
 }
 
-type SearchEdge = {
-  node: PR;
-};
-
+type SearchEdge = { node: PR };
 type GitHubSearchResponse = {
   data?: {
     search?: {
       edges?: Array<SearchEdge | null>;
-      pageInfo?: {
-        hasNextPage: boolean;
-        endCursor: string | null;
-      };
+      pageInfo?: { hasNextPage: boolean };
     };
   };
   message?: string;
   error?: unknown;
 };
+type FilterType = "merged" | "activity";
 
-type FilterType = "merged" | "open" | "closed";
-
-const MAX_PRS_PER_FILTER = 300;
-const PR_CACHE_VERSION = "v4_300_DeepanB15";
+const MAX_MERGED_PRS = 300;
+const PR_CACHE_KEY = "github_prs_v5_300_DeepanB15";
 
 const pipeshubPRs: PR[] = pipeshubContributions.map((contribution) => ({
   id: -contribution.number,
@@ -55,7 +45,6 @@ const pipeshubPRs: PR[] = pipeshubContributions.map((contribution) => ({
   state: "MERGED",
   createdAt: contribution.mergedAt,
   mergedAt: contribution.mergedAt,
-  organization: "PipesHub AI",
   number: contribution.number,
   mergedDate: contribution.mergedDate,
   technicalDetails: pipeshubTechnicalDetails,
@@ -63,7 +52,7 @@ const pipeshubPRs: PR[] = pipeshubContributions.map((contribution) => ({
 
 function includePipesHubPRs(prs: PR[]) {
   const actualByUrl = new Map(prs.map((pr) => [pr.url, pr]));
-  const pipeshubUrls = new Set(pipeshubPRs.map((pr) => pr.url));
+  const confirmedUrls = new Set(pipeshubPRs.map((pr) => pr.url));
   return [
     ...pipeshubPRs.map((confirmedPR) => {
       const actualPR = actualByUrl.get(confirmedPR.url);
@@ -71,143 +60,103 @@ function includePipesHubPRs(prs: PR[]) {
         ? { ...actualPR, technicalDetails: pipeshubTechnicalDetails }
         : confirmedPR;
     }),
-    ...prs.filter((pr) => !pipeshubUrls.has(pr.url)),
+    ...prs.filter((pr) => !confirmedUrls.has(pr.url)),
   ];
 }
 
 export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: boolean }) {
-  const [prsByType, setPrsByType] = useState<Record<FilterType, PR[]>>({
-    merged: pipeshubPRs,
-    open: [],
-    closed: [],
-  });
-  const [loadedTypes, setLoadedTypes] = useState<Set<FilterType>>(new Set());
-  const [errorTypes, setErrorTypes] = useState<Set<FilterType>>(new Set());
+  const [mergedPRs, setMergedPRs] = useState<PR[]>(pipeshubPRs);
+  const [mergedLoaded, setMergedLoaded] = useState(false);
+  const [mergedError, setMergedError] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>("merged");
-  const [closedPRIds] = useState<Set<number>>(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const initialCount = 4;
   const fetchedRef = useRef(false);
+  const initialCount = 4;
 
-  const fetchPRsForType = useCallback(async (type: FilterType) => {
-    const cacheKey = `github_prs_${PR_CACHE_VERSION}_${type}`;
-    const cachedData = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
-
-    // Immediately populate from cache if available
+  const fetchMergedPRs = useCallback(async () => {
+    const cachedData = typeof window !== "undefined" ? localStorage.getItem(PR_CACHE_KEY) : null;
     if (cachedData) {
       try {
-        const parsed = JSON.parse(cachedData);
-        setPrsByType((prev) => ({
-          ...prev,
-          [type]: type === "merged" ? includePipesHubPRs(parsed) : parsed,
-        }));
-        setLoadedTypes(prev => new Set(prev).add(type));
+        const parsed: unknown = JSON.parse(cachedData);
+        if (Array.isArray(parsed)) {
+          setMergedPRs(includePipesHubPRs(parsed as PR[]));
+        }
       } catch {
-        // invalid cache, will fetch fresh
+        localStorage.removeItem(PR_CACHE_KEY);
       }
     }
 
-    // Fetch fresh data in background
     try {
       const fetchedEdges: Array<SearchEdge | null> = [];
       let page = 1;
       let hasNextPage = true;
 
-      while (hasNextPage && fetchedEdges.length < MAX_PRS_PER_FILTER) {
-        const response = await fetch(`/api/github?state=${type}&page=${page}`);
+      while (hasNextPage && fetchedEdges.length < MAX_MERGED_PRS) {
+        const response = await fetch(`/api/github?state=merged&page=${page}`);
         const data = (await response.json()) as GitHubSearchResponse;
         if (!response.ok) {
           throw new Error(data.message ?? data.error?.toString() ?? `Pull request request failed (${response.status}).`);
         }
         const search = data.data?.search;
+        if (!search?.edges) throw new Error("GitHub returned an invalid pull request response.");
 
-        if (!search?.edges) {
-          throw new Error("GitHub returned an invalid pull request response.");
-        }
-
-        fetchedEdges.push(...search.edges.slice(0, MAX_PRS_PER_FILTER - fetchedEdges.length));
+        fetchedEdges.push(...search.edges.slice(0, MAX_MERGED_PRS - fetchedEdges.length));
         hasNextPage = Boolean(search.pageInfo?.hasNextPage);
         page += 1;
       }
 
-      if (fetchedEdges.length > 0) {
-        const fetchedPRs = fetchedEdges.flatMap((edge) =>
-          edge?.node ? [edge.node] : [],
-        );
-        fetchedPRs.sort((a: PR, b: PR) => {
-          const dateA = new Date(b.mergedAt || b.closedAt || b.createdAt).getTime();
-          const dateB = new Date(a.mergedAt || a.closedAt || a.createdAt).getTime();
-          return dateA - dateB;
-        });
-        const displayedPRs =
-          type === "merged" ? includePipesHubPRs(fetchedPRs) : fetchedPRs;
-        setPrsByType((prev) => ({ ...prev, [type]: displayedPRs }));
-        setLoadedTypes(prev => new Set(prev).add(type));
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(cacheKey, JSON.stringify(displayedPRs));
-        }
-      } else {
-        setLoadedTypes(prev => new Set(prev).add(type));
-      }
+      const fetchedPRs = fetchedEdges.flatMap((edge) => edge?.node ? [edge.node] : []);
+      fetchedPRs.sort((first, second) =>
+        new Date(second.mergedAt ?? second.createdAt).getTime() -
+        new Date(first.mergedAt ?? first.createdAt).getTime(),
+      );
+      const displayedPRs = includePipesHubPRs(fetchedPRs);
+      setMergedPRs(displayedPRs);
+      localStorage.setItem(PR_CACHE_KEY, JSON.stringify(displayedPRs));
     } catch (error) {
-      console.error(`Failed to fetch ${type} GitHub pull requests:`, error);
-      setErrorTypes((previous) => new Set(previous).add(type));
-      setLoadedTypes(prev => new Set(prev).add(type));
+      console.error("Failed to fetch merged GitHub pull requests:", error);
+      setMergedError(true);
+    } finally {
+      setMergedLoaded(true);
     }
   }, []);
 
-  // Prefetch ALL filter types on mount
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
+    void fetchMergedPRs();
+  }, [fetchMergedPRs]);
 
-    // Fetch merged first (visible by default), then others in parallel
-    fetchPRsForType("merged");
-    fetchPRsForType("open");
-    fetchPRsForType("closed");
-  }, [fetchPRsForType]);
-
-  // Smooth tab switching with a brief crossfade
   const handleFilterChange = useCallback((type: FilterType) => {
     if (type === filterType) return;
     setIsTransitioning(true);
-    // Brief fade-out, then swap, then fade-in
     requestAnimationFrame(() => {
       setTimeout(() => {
         setFilterType(type);
-        // Allow the new content to render, then fade in
         requestAnimationFrame(() => {
-          setTimeout(() => {
-            setIsTransitioning(false);
-          }, 30);
+          setTimeout(() => setIsTransitioning(false), 30);
         });
       }, 120);
     });
   }, [filterType]);
-
-  const currentPrs = prsByType[filterType];
-  const isLoaded = loadedTypes.has(filterType);
 
   return (
     <div className="w-full flex flex-col">
       <div className="py-2 relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-[18px] font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Open Source Contributions</h2>
 
-        {/* Toggle */}
         <div className="flex items-center gap-2 relative z-20 group mr-[8px]">
           <div className="absolute -inset-[5px] border border-black/5 dark:border-white/5 rounded-[11px] pointer-events-none transition-colors duration-300 group-hover:border-black/10 dark:group-hover:border-white/10" />
-          <div className="relative grid grid-cols-3 p-1 bg-zinc-50 dark:bg-[#09090b] rounded-[6px] border border-black/5 dark:border-white/5 shadow-sm shadow-black/20 dark:shadow-lg dark:shadow-black/80 w-fit select-none">
-            {/* Sliding Pill Background */}
+          <div className="relative grid grid-cols-2 p-1 bg-zinc-50 dark:bg-[#09090b] rounded-[6px] border border-black/5 dark:border-white/5 shadow-sm shadow-black/20 dark:shadow-lg dark:shadow-black/80 w-fit select-none">
             <div
-              className={`absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/3)] rounded-[4px] bg-white dark:bg-[#1e1e20] border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] transform will-change-transform ${filterType === "merged" ? "translate-x-0" : filterType === "open" ? "translate-x-[100%]" : "translate-x-[200%]"
-                }`}
+              className={`absolute top-1 bottom-1 left-1 w-[calc((100%-8px)/2)] rounded-[4px] bg-white dark:bg-[#1e1e20] border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] transform will-change-transform ${filterType === "merged" ? "translate-x-0" : "translate-x-[100%]"}`}
             />
-
-            {/* Buttons */}
-            {(["merged", "open", "closed"] as FilterType[]).map((type) => (
+            {(["merged", "activity"] as FilterType[]).map((type) => (
               <button
                 key={type}
+                type="button"
+                role="tab"
+                aria-selected={filterType === type}
                 onClick={() => handleFilterChange(type)}
                 className={`z-10 relative px-3 py-1.5 text-[12px] font-medium text-center transition-colors duration-200 capitalize ${filterType === type
                   ? "text-zinc-900 dark:text-zinc-100"
@@ -220,118 +169,87 @@ export function OpenSourceContributions({ isFullPage = false }: { isFullPage?: b
           </div>
         </div>
 
-        {/* Horizontal line below heading */}
         <div className="absolute bottom-0 left-[-100vw] right-[-100vw] h-0 border-b border-black/30 dark:border-white/[0.15] pointer-events-none" style={{ maskImage: 'repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)', WebkitMaskImage: 'repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)' }} />
-        {/* Intersections */}
         <div className="absolute bottom-0 -left-4 w-[2px] h-[2px] bg-black/40 dark:bg-white/[0.25] -translate-x-1/2 translate-y-1/2 pointer-events-none z-20" />
         <div className="absolute bottom-0 -right-4 w-[2px] h-[2px] bg-black/40 dark:bg-white/[0.25] translate-x-1/2 translate-y-1/2 pointer-events-none z-20" />
       </div>
 
       <div className="relative pt-0 pb-2">
-        {/* Smooth crossfade container */}
         <div
           className="transition-all duration-150 ease-out"
           style={{
             opacity: isTransitioning ? 0 : 1,
-            transform: isTransitioning ? 'translateY(4px)' : 'translateY(0)',
+            transform: isTransitioning ? "translateY(4px)" : "translateY(0)",
           }}
         >
-          {!isLoaded && currentPrs.length === 0 ? (
-            /* Skeleton loading — only shows on truly first load with no cache */
-            <div className="flex flex-col">
-              {Array.from({ length: initialCount }).map((_, idx) => (
-                <div key={idx} className="relative flex flex-col gap-1.5 py-4 px-4 -mx-4">
-                  {idx < initialCount - 1 && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-0 border-b border-black/30 dark:border-white/[0.15] pointer-events-none z-10"
-                      style={{
-                        maskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)",
-                        WebkitMaskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)",
-                      }}
-                    />
-                  )}
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-2 h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 animate-pulse shrink-0" />
-                    <div className="h-3.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-md animate-pulse w-3/4" />
+          <div className={filterType === "merged" ? "block" : "hidden"}>
+            {!mergedLoaded && mergedPRs.length === 0 ? (
+              <div className="flex flex-col">
+                {Array.from({ length: initialCount }).map((_, index) => (
+                  <div key={index} className="flex items-center gap-2.5 border-b border-black/10 px-4 py-4 dark:border-white/[0.12]">
+                    <div className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="h-3.5 w-3/4 animate-pulse rounded-md bg-zinc-100 dark:bg-zinc-800/60" />
                   </div>
-                  <div className="ml-4.5 pl-0.5">
-                    <div className="h-3 bg-zinc-100 dark:bg-zinc-800/40 rounded-md animate-pulse w-1/3 mt-0.5" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : currentPrs.length > 0 ? (
-            <div className="flex flex-col">
-              {currentPrs.slice(0, isFullPage ? currentPrs.length : initialCount).filter(pr => !closedPRIds.has(pr.id)).map((pr, idx, arr) => {
-                const isLast = idx === arr.length - 1;
-                return (
+                ))}
+              </div>
+            ) : mergedPRs.length > 0 ? (
+              <div className="flex flex-col">
+                {mergedPRs.slice(0, isFullPage ? mergedPRs.length : initialCount).map((pr, index, visiblePRs) => (
                   <a
                     key={pr.id}
                     href={pr.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative flex flex-col gap-1.5 py-4 px-4 -mx-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/20 rounded-lg"
+                    className="group relative flex flex-col gap-1.5 rounded-lg px-4 py-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/20"
                   >
-                    {!isLast && (
-                      <div
-                        className="absolute bottom-0 left-0 right-0 h-0 border-b border-black/30 dark:border-white/[0.15] pointer-events-none z-10"
-                        style={{
-                          maskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)",
-                          WebkitMaskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)",
-                        }}
-                      />
+                    {index < visiblePRs.length - 1 && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0 border-b border-black/30 dark:border-white/[0.15] pointer-events-none" style={{ maskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)", WebkitMaskImage: "repeating-linear-gradient(to right, black 0, black 1px, transparent 1px, transparent 6px)" }} />
                     )}
-                    <div className="flex items-center gap-2.5 relative z-20 min-w-0">
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${pr.state === "MERGED"
-                        ? "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]"
-                        : pr.state === "OPEN"
-                          ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
-                          : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"
-                        }`}></div>
-                      <h3 className="text-[14px] font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors truncate">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="h-2 w-2 shrink-0 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)]" />
+                      <h3 className="truncate text-[14px] font-medium text-zinc-800 transition-colors group-hover:text-zinc-900 dark:text-zinc-200 dark:group-hover:text-zinc-100">
                         {pr.title}
                       </h3>
                     </div>
-                    <p className="text-[12px] text-zinc-500 dark:text-zinc-400 ml-4.5 pl-0.5 relative z-20">
+                    <p className="ml-4.5 pl-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
                       {pr.repository.nameWithOwner}
                       {pr.number ? ` · PR #${pr.number}` : ""}
+                      {" · Merged"}
                       {pr.mergedDate
-                        ? ` · Merged ${pr.mergedDate}`
+                        ? ` ${pr.mergedDate}`
                         : pr.mergedAt
-                          ? ` · Merged ${new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(pr.mergedAt))}`
+                          ? ` ${new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(pr.mergedAt))}`
                           : ""}
                     </p>
                     {pr.technicalDetails && (
-                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 ml-4.5 pl-0.5 relative z-20">
+                      <p className="ml-4.5 pl-0.5 text-[11px] text-zinc-400 dark:text-zinc-500">
                         {pr.technicalDetails.join(" · ")}
                       </p>
                     )}
                   </a>
-                )
-              })}
-
-              {!isFullPage && currentPrs.length > initialCount && (
-                <div className="flex justify-center mt-4 relative z-20">
-                  <Link href="/pull-requests" className="relative group block">
-                    <div className="absolute -inset-[5px] border border-black/5 dark:border-white/5 rounded-[11px] pointer-events-none transition-colors duration-300 group-hover:border-black/10 dark:group-hover:border-white/10" />
-                    <div className="relative flex items-center gap-1.5 px-4 py-2 bg-zinc-50 hover:bg-zinc-100 dark:bg-[#09090b] dark:hover:bg-[#121214] text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 rounded-[6px] text-[13px] font-medium transition-all duration-300 border border-black/5 dark:border-white/5 shadow-sm shadow-black/20 dark:shadow-lg dark:shadow-black/80">
-                      View All ({currentPrs.length - initialCount} more)
-                      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-300 transition-transform duration-300 -rotate-90" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <polyline points="19 12 12 19 5 12"></polyline>
-                      </svg>
-                    </div>
-                  </Link>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex justify-center py-4 text-center text-[13px] text-zinc-500">
-              {errorTypes.has(filterType)
-                ? "GitHub pull request data is temporarily unavailable. Please try again later."
-                : `No ${filterType} pull requests found.`}
-            </div>
-          )}
+                ))}
+                {!isFullPage && mergedPRs.length > initialCount && (
+                  <div className="relative z-20 mt-4 flex justify-center">
+                    <Link href="/pull-requests" className="relative block group">
+                      <div className="absolute -inset-[5px] rounded-[11px] border border-black/5 transition-colors group-hover:border-black/10 dark:border-white/5 dark:group-hover:border-white/10" />
+                      <div className="relative flex items-center gap-1.5 rounded-[6px] border border-black/5 bg-zinc-50 px-4 py-2 text-[13px] font-medium text-zinc-600 shadow-sm shadow-black/20 transition-all hover:bg-zinc-100 hover:text-zinc-900 dark:border-white/5 dark:bg-[#09090b] dark:text-zinc-400 dark:shadow-lg dark:shadow-black/80 dark:hover:bg-[#121214] dark:hover:text-zinc-100">
+                        View All ({mergedPRs.length - initialCount} more)
+                      </div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-4 text-center text-[13px] text-zinc-500">
+                {mergedError
+                  ? "GitHub merged pull request data is temporarily unavailable. Please try again later."
+                  : "No merged pull requests found."}
+              </div>
+            )}
+          </div>
+          <div className={filterType === "activity" ? "block" : "hidden"}>
+            <GitHubActivityTimeline active={filterType === "activity"} />
+          </div>
         </div>
       </div>
     </div>

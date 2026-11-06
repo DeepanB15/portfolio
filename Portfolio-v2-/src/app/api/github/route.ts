@@ -1,23 +1,15 @@
 import { NextResponse } from "next/server";
 
-type PullRequestState = "merged" | "open" | "closed";
-
-const stateQuery: Record<PullRequestState, string> = {
-  merged: "is:merged",
-  open: "is:open",
-  closed: "is:closed is:unmerged",
-};
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const state = searchParams.get("state") as PullRequestState | null;
+  const state = searchParams.get("state");
   const page = Number(searchParams.get("page") ?? "1");
 
-  if (!state || !(state in stateQuery) || !Number.isInteger(page) || page < 1 || page > 10) {
+  if (state !== "merged" || !Number.isInteger(page) || page < 1 || page > 10) {
     return NextResponse.json({ error: "Invalid pull request search parameters." }, { status: 400 });
   }
 
-  const query = `author:DeepanB15 type:pr ${stateQuery[state]}`;
+  const query = "author:DeepanB15 type:pr is:merged";
   const url = new URL("https://api.github.com/search/issues");
   url.searchParams.set("q", query);
   url.searchParams.set("per_page", "100");
@@ -48,7 +40,6 @@ export async function GET(request: Request) {
       repository_url: string;
       state: string;
       created_at: string;
-      closed_at: string | null;
       pull_request?: { merged_at?: string | null };
     }) => ({
       node: {
@@ -64,7 +55,6 @@ export async function GET(request: Request) {
           : item.state.toUpperCase(),
         createdAt: item.created_at,
         mergedAt: item.pull_request?.merged_at ?? null,
-        closedAt: item.closed_at,
       },
     }));
 

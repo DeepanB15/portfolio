@@ -135,7 +135,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
 
         {/* Action Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 items-center justify-between py-4 relative">
+        <div className="grid grid-cols-2 items-center justify-between py-4 relative">
           {project.href ? (
             <a href={project.href} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-[13px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
               <SiGithub className="w-4 h-4" /> Github
@@ -143,7 +143,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           ) : <div />}
           
           {/* Vertical Divider 1 */}
-          <div className="hidden md:block absolute left-1/3 top-0 bottom-0 w-0 border-l border-black/30 dark:border-white/[0.15] pointer-events-none" style={{ maskImage: 'repeating-linear-gradient(to bottom, black 0, black 1px, transparent 1px, transparent 6px)', WebkitMaskImage: 'repeating-linear-gradient(to bottom, black 0, black 1px, transparent 1px, transparent 6px)' }} />
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0 border-l border-black/30 dark:border-white/[0.15] pointer-events-none" style={{ maskImage: 'repeating-linear-gradient(to bottom, black 0, black 1px, transparent 1px, transparent 6px)', WebkitMaskImage: 'repeating-linear-gradient(to bottom, black 0, black 1px, transparent 1px, transparent 6px)' }} />
 
           {project.live ? (
             <a href={project.live} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-[13px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
@@ -151,13 +151,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </a>
           ) : <div />}
           
-          {/* Vertical Divider 2 */}
-          <div className="hidden md:block absolute left-2/3 top-0 bottom-0 w-0 border-l border-black/30 dark:border-white/[0.15] pointer-events-none" style={{ maskImage: 'repeating-linear-gradient(to bottom, black 0, black 1px, transparent 1px, transparent 6px)', WebkitMaskImage: 'repeating-linear-gradient(to bottom, black 0, black 1px, transparent 1px, transparent 6px)' }} />
-
-          <a href="#" className="hidden md:flex items-center justify-center gap-2 text-[13px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="15" y1="9" y2="9"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
-            Post
-          </a>
         </div>
 
         {/* Bottom Dashed Divider */}
@@ -200,11 +193,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             {project.tech.map((t: TechItem, i: number) => {
               const isKey = typeof t === "string";
               const label = isKey ? techNames[t as TechKey] : t.label;
-              const Icon = isKey ? iconMap[t as TechKey] : null;
+              const Icon = isKey ? iconMap[t as TechKey] : t.icon;
 
               return (
-                <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-900 border border-black/10 dark:border-white/5 rounded-md text-[12px] font-medium text-zinc-700 dark:text-zinc-300">
-                  {Icon && <Icon className="w-3.5 h-3.5" />}
+                <div key={i} className="flex min-h-8 items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-900 border border-black/10 dark:border-white/5 rounded-md text-[12px] font-medium text-zinc-700 dark:text-zinc-300">
+                  {Icon && <Icon aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />}
                   <span>{label}</span>
                 </div>
               );
