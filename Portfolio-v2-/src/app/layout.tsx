@@ -28,7 +28,7 @@ const pageTitle = `${profile.name} | ${profile.role}`;
 const pageDescription = `${profile.name} is an ${profile.role} based in ${profile.location}.`;
 
 export const metadata: Metadata = {
-  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
+  metadataBase: new URL("https://deepanb15.vercel.app"),
   title: "Deepan",
   description: pageDescription,
   openGraph: {
