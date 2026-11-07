@@ -73,9 +73,9 @@ export const ProjectCard = ({
           )}
         </div>
 
-        {/* Ambient Hover Background */}
+        {/* Ambient Project Background */}
         {project.backgroundImage && (
-          <div className="absolute inset-0 scale-100 opacity-0 transition-[opacity,transform] duration-200 ease-out group-hover:scale-[1.03] group-hover:opacity-100">
+          <div className="absolute inset-0 scale-100 opacity-100 transition-[opacity,transform] duration-200 ease-out group-hover:scale-[1.03]">
             <Image
               src={project.backgroundImage}
               alt=""
